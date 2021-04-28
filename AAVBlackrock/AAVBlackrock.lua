@@ -59,8 +59,8 @@ AAV_COMBATTEXT_CRITTIME = 0.5
 AAV_COMBATTEXT_FRAMESPEED = 40
 AAV_COMBATTEXT_ALPHASPEED = 3
 AAV_COMBATTEXT_CRITSPEED = 30
-AAV_COMBATTEXT_SCROLLINGTEXTFONTSIZE = 12
-AAV_COMBATTEXT_SCROLLINGTEXTCRITPLUS = 26
+AAV_COMBATTEXT_SCROLLINGTEXTFONTSIZE = 16
+AAV_COMBATTEXT_SCROLLINGTEXTCRITPLUS = 28
 
 AAV_USEDSKILL_PERSISTENCE = 6.0
 AAV_USEDSKILL_FRAMESPEED = 60
@@ -135,7 +135,7 @@ StaticPopupDialogs["AAV_IMPORT_DIALOG"] = {
 
 
 function atroxArenaViewer:OnInitialize()
-	
+
 	atroxArenaViewerData = atroxArenaViewerData or {
 		defaults = {
 			profile = {
@@ -150,7 +150,7 @@ function atroxArenaViewer:OnInitialize()
 			}
 		}
 	}
-	
+
 	atroxArenaViewerData.current = {
 		inArena = false,
 		inFight = false,
@@ -161,18 +161,18 @@ function atroxArenaViewer:OnInitialize()
 		interval = 0.1,
 		update = 0.1,
 	}
-    
+
     local minimap = AAV_Gui:createMinimapIcon(self)
-    
+
     print("|cffe392c5<AAV Blackrock Version>|r v"..AAV_VERSIONMAJOR.."."..AAV_VERSIONMINOR.."."..AAV_VERSIONBUGFIX.. " " .. L.AAV_LOADED)
 
-	
-    
+
+
     self:RegisterEvent("ZONE_CHANGED_NEW_AREA")
     self:RegisterEvent("UPDATE_BATTLEFIELD_STATUS")
 	self:RegisterEvent("CHAT_MSG_ADDON")
 	self:RegisterEvent("CHAT_MSG_SYSTEM")
-    
+
 	--OPTIONS
 	local options = {
 		type = "group",
@@ -341,7 +341,7 @@ function atroxArenaViewer:OnInitialize()
 	}
 	AceConfig:RegisterOptionsTable("AAVBlackrock_options", options)
 	AceConfigDialog:AddToBlizOptions("AAVBlackrock_options", "AAVBlackrock")
-	
+
 
 
 end
@@ -368,7 +368,7 @@ function atroxArenaViewer:onUpdate(elapsed)
 	if (T) then
 		T:onUpdate(elapsed * (atroxArenaViewerData.current.interval * 10))
 	end
-	
+
 	return
 end
 
@@ -376,8 +376,8 @@ end
 ----
 -- status 1 = in queue, in arena: message board; 2 = entered
 function atroxArenaViewer:UPDATE_BATTLEFIELD_STATUS(event, status)
-	if (atroxArenaViewerData.current.record and M) then	
-		if (status == 1 and atroxArenaViewerData.current.inArena) then		
+	if (atroxArenaViewerData.current.record and M) then
+		if (status == 1 and atroxArenaViewerData.current.inArena) then
 			local found
 			for i=0,1 do
 				found = false
@@ -414,7 +414,7 @@ if (atroxArenaViewerData.current.record == true) then
 			atroxArenaViewerData.current.entered = self:getCurrentTime()
 			atroxArenaViewerData.current.time = GetTime()
 			M:setBracket(self:getCurrentBracket())
-			
+
 			for i = 1, 5 do
 				if (UnitExists("raid" .. i)) then
 					local key, player = M:updateMatchPlayers(1, "raid" .. i)
@@ -425,27 +425,27 @@ if (atroxArenaViewerData.current.record == true) then
 					local key, player = M:updateMatchPlayers(2, "arena"..i)
 				end
 			end
-						
+
 			self:handleEvents("register")
 		end
 currentstate = 8
 end
 function atroxArenaViewer:CHAT_MSG_BG_SYSTEM_NEUTRAL(event, msg)
 
-	
+
 	if (string.upper(msg) == string.upper(L.ARENA_START)) then
 		if (atroxArenaViewerData.current.record == true) then
 			atroxArenaViewerData.current.entered = self:getCurrentTime()
 			atroxArenaViewerData.current.time = GetTime()
 			M:setBracket(self:getCurrentBracket())
 
-			
+
 			for i = 1, 5 do
 				if (UnitExists("raid" .. i)) then
 					local key, player = M:updateMatchPlayers(1, "raid" .. i)
 				end
 			end
-			
+
 			self:handleEvents("register")
 		end
 		currentstate = 8
@@ -455,7 +455,7 @@ function atroxArenaViewer:CHAT_MSG_BG_SYSTEM_NEUTRAL(event, msg)
 				if (UnitExists("arena" .. i)) then
 					local key, player = M:updateMatchPlayers(2, "arena"..i)
 				end
-			end	
+			end
 	elseif (msg == L.ARENA_45) then
 		currentstate = 5
 	elseif (msg == L.ARENA_30) then
@@ -483,11 +483,11 @@ function atroxArenaViewer:ZONE_CHANGED_NEW_AREA(event, unit)
 		self:RegisterEvent("CHAT_MSG_BG_SYSTEM_NEUTRAL")
 		self:RegisterEvent("CHAT_MSG_RAID_BOSS_EMOTE")
 
-		
+
 		atroxArenaViewerData.current.inArena = true
 		atroxArenaViewerData.current.entered = self:getCurrentTime()
 		atroxArenaViewerData.current.time = GetTime()
-		
+
 		M = AAV_MatchStub:new()
 		--Reset lastcdused & diff
 		lastcdused = {}
@@ -495,24 +495,24 @@ function atroxArenaViewer:ZONE_CHANGED_NEW_AREA(event, unit)
 			lastcdused[a] = {}
 		end
 		diff = 0
-		
+
 		self:RegisterEvent("ARENA_OPPONENT_UPDATE")
-		
+
 	else --save match
 		if (atroxArenaViewerData.current.inArena) then
-			
+
 			self:handleEvents("unregister")
 			self:UnregisterEvent("CHAT_MSG_BG_SYSTEM_NEUTRAL")
 			self:UnregisterEvent("CHAT_MSG_RAID_BOSS_EMOTE")
 			self:UnregisterEvent("ARENA_OPPONENT_UPDATE")
-			
-			
+
+
 			if (atroxArenaViewerData.current.record) then
 				atroxArenaViewerData.data = atroxArenaViewerData.data or {}
 				local matchid = self:getNewMatchID()
-				
+
 				atroxArenaViewerData.data[matchid] = atroxArenaViewerData.data[matchid] or {}
-				
+
 				M:setMatchEnd()
 				M:saveToVariable(matchid)
 			end
@@ -520,7 +520,7 @@ function atroxArenaViewer:ZONE_CHANGED_NEW_AREA(event, unit)
 			atroxArenaViewerData.current.entered = 0
 			atroxArenaViewerData.current.time = 0
 			atroxArenaViewerData.current.move = 0
-			
+
 		end
 	end
 end
@@ -536,8 +536,8 @@ function atroxArenaViewer:handleEvents(val)
 		self:RegisterEvent("ARENA_OPPONENT_UPDATE")
 		self:RegisterEvent("UNIT_NAME_UPDATE")
 		atroxArenaViewerData.current.inFight = true
-		
-		
+
+
 	--	print("[debug] REGISTERING all events")
 	elseif (val == "unregister") then
 		self:UnregisterEvent("COMBAT_LOG_EVENT_UNFILTERED")
@@ -547,10 +547,10 @@ function atroxArenaViewer:handleEvents(val)
 		self:UnregisterEvent("ARENA_OPPONENT_UPDATE")
 		self:UnregisterEvent("UNIT_NAME_UPDATE")
 		self:UnregisterEvent("UNIT_AURA")
-		
+
 		atroxArenaViewerData.current.inFight = false
 	--	print("[debug] unregistering all events")
-		
+
 	end
 end
 ----
@@ -569,12 +569,12 @@ function atroxArenaViewer:initArenaMatchUnits(arr)
 	local hp, hpmax, guid
 	local buffs, debuffs = {}, {}
 	local i, n = 1, 1
-	
+
 	if (UnitName(unit) == L.UNKNOWN or UnitClass(unit) == nil) then return end
-	
+
 	guid = M:getGUIDtoNumber(UnitGUID(unit))
 	if (not guid) then return end
-	
+
 	-- BUFFS
 	for n = 1, 40 do
 		local _, _, icon, _, _, _, _, _, _, _, b = UnitBuff(unit, n) --spellid
@@ -586,7 +586,7 @@ function atroxArenaViewer:initArenaMatchUnits(arr)
 			break
 		end
 	end
-	
+
 	-- DEBUFFS
 	for n = 1, 40 do
 		_, _, _, _, _, _, _, _, _, _, b = UnitDebuff(unit, n) --spellid
@@ -596,14 +596,14 @@ function atroxArenaViewer:initArenaMatchUnits(arr)
 			break
 		end
 	end
-	
+
 	for k,v in pairs(buffs) do
 		M:getBuffs(guid)[k] = true
 	end
 	for k,v in pairs(debuffs) do
 		M:getDebuffs(guid)[k] = true
 	end
-	
+
 	self:createMessage(self.getDiffTime(), "0," .. guid .. "," .. UnitHealth(unit) .. "," .. UnitHealthMax(unit) .. "," .. table.concat(buffs, ";") .. "," .. table.concat(debuffs, ";"))
 end
 
@@ -630,10 +630,10 @@ end
 -- @param event
 -- @param unit
 function atroxArenaViewer:UNIT_MANA(event, unit)
-	
+
 	local player = M:getDudesData()[UnitGUID(unit)]
 	if (player) then --and (player.mana > (UnitMana(unit)/UnitManaMax(unit))) then
-		
+
 		local mana = math.floor((UnitMana(unit)/UnitManaMax(unit))*100)
 		if not (mana > player.mana - AAV_MANATRESHOLD and mana < player.mana + AAV_MANATRESHOLD) then
 			player.mana = mana
@@ -654,7 +654,7 @@ function atroxArenaViewer:UNIT_HEALTH(event, unit)
 
 		local target = M:getChangeInHealthFlags(unit)
 		local u = M:getGUIDtoNumber(UnitGUID(unit))
-		
+
 		if (bit.band(target, 0x1) ~= 0 and u) then
 			self:createMessage(self:getDiffTime(), "1," .. u .. "," .. UnitHealth(unit))
 		end
@@ -668,35 +668,35 @@ function atroxArenaViewer:UNIT_AURA(event, unit)
 	local n, m = 1, 1
 	local sub = string.sub(unit,1,4)
 	if (sub ~= "raid" and sub ~= "aren") then return end
-	
+
 	local id = M:getGUIDtoNumber(UnitGUID(unit))
 	if (not id) then return end
-	
+
 	for n = 1, 40 do
 		local _, _, _, _, _, btime, _, _, _, _, bspellid = UnitBuff(unit, n)
 		local _, _, _, _, _, dtime, _, _, _, _, dspellid = UnitDebuff(unit, n)
-		
+
 		if (not bspellid and not dspellid) then break end
-		
+
 		if (bspellid) then tempbuffs[bspellid] = true end
 		if (dspellid) then tempdebuffs[dspellid] = true end
-		
+
 		if (bspellid and not M:getBuffs(id)[bspellid]) then
 			-- create new buff
 			M:getBuffs(id)[bspellid] = true
-			
+
 			if (not btime) then btime = 0 end
 			self:createMessage(self:getDiffTime(), "13," .. id .. "," .. bspellid .. ",1," .. btime)
 		end
 		if (dspellid and not M:getDebuffs(id)[dspellid]) then
 			-- create new debuff
 			M:getDebuffs(id)[dspellid] = true
-			
+
 			if (not dtime) then dtime = 0 end
 			self:createMessage(self:getDiffTime(), "13," .. id .. "," .. dspellid .. ",2," .. dtime)
 		end
 	end
-	
+
 	for k,v in pairs(M:getBuffs(id)) do
 		if (not tempbuffs[k]) then
 			--remove
@@ -711,14 +711,14 @@ function atroxArenaViewer:UNIT_AURA(event, unit)
 			M:getDebuffs(id)[k] = nil
 		end
 	end
-	
+
 	for k,v in pairs(tempbuffs) do
 		tempbuffs[k] = nil
 	end
 	for k,v in pairs(tempdebuffs) do
 		tempdebuffs[k] = nil
 	end
-	
+
 end
 
 function atroxArenaViewer:UNIT_NAME_UPDATE(event, unit)
@@ -726,7 +726,7 @@ function atroxArenaViewer:UNIT_NAME_UPDATE(event, unit)
 	if (UnitIsPlayer(unit)) then
 		if (not M) then return end
 		local sourceGUID = UnitGUID(unit)
-		
+
 		M:getDudesData()[sourceGUID].name = UnitName(unit)
 	end
 end
@@ -743,21 +743,21 @@ function atroxArenaViewer:ARENA_OPPONENT_UPDATE(event, unit, type)
 
 			local key, player = M:updateMatchPlayers(2, unit)
 		end
-		
+
 	elseif (type == "unseen") then
 		-- lost track (stealth)
 		if (u) then self:createMessage(self:getDiffTime(), "18," .. u .. ",1") end
-		
+
 	elseif (type == "destroyed") then
 		-- has left the arena
 		if (u) then self:createMessage(self:getDiffTime(), "18," .. u .. ",3") end
-		
+
 	end
 end
 
 --HACK FOR PENANCE BECAUSE BLACKROCK'S core
 function atroxArenaViewer:UNIT_SPELLCAST_CHANNEL_START(event, unit)
-	local spell, rank, displayName, icon, startTime, endTime, isTradeSkill = UnitChannelInfo(unit)	
+	local spell, rank, displayName, icon, startTime, endTime, isTradeSkill = UnitChannelInfo(unit)
 	local arenaUnits = {}
 	local time = 0
 	for i=1, 5 do
@@ -785,7 +785,7 @@ function atroxArenaViewer:COMBAT_LOG_EVENT_UNFILTERED(event, ...)
 	local source = M:getGUIDtoNumber(sourceGUID)
 	local dest = M:getGUIDtoNumber(destGUID)
 	if (not absorbed) then absorbed = 0 end
-	
+
 	-- TYPE 3
 	if (type == "SWING_DAMAGE") then
 		eventType = 3
@@ -847,7 +847,7 @@ function atroxArenaViewer:COMBAT_LOG_EVENT_UNFILTERED(event, ...)
 			local theTime = self:getDiffTime()
 			local isCdHacking = 0
 			-- ANTICHEAT CDHACK
-			if (AAV_CHEATSKILS[spellId]) then 
+			if (AAV_CHEATSKILS[spellId]) then
 				if (not lastcdused[tonumber(spellId)][source]) then lastcdused[tonumber(spellId)][source] = 0 end
 				diff = tonumber(theTime) - lastcdused[spellId][source]
 				if (diff < AAV_CCSKILS[tonumber(spellId)] and lastcdused[tonumber(spellId)][source] ~= 0) then
@@ -857,7 +857,7 @@ function atroxArenaViewer:COMBAT_LOG_EVENT_UNFILTERED(event, ...)
 					else
 						print("|cFFFF0000<AAV> Cheat Detector Triggered:|r CD Hack - Check the Addon after the game to learn more")
 					end
-					isCdHacking = 1				
+					isCdHacking = 1
 
 				end
 				lastcdused[tonumber(spellId)][source] = theTime
@@ -872,7 +872,7 @@ function atroxArenaViewer:COMBAT_LOG_EVENT_UNFILTERED(event, ...)
 		end
 	elseif (type == "SPELL_CAST_FAILED") then
 		-- cant be tracked from others
-		
+
 	elseif (type == "SPELL_INTERRUPT") then
 		eventType = 12
 		if (source and dest) then
@@ -885,13 +885,13 @@ function atroxArenaViewer:COMBAT_LOG_EVENT_UNFILTERED(event, ...)
 			local time = 0
 			local target
 			if (amount == "BUFF") then amount = 1 else amount = 2 end -- buffs = 1, debuffs = 2
-			
+
 			if (AAV_IMPORTANTSKILLS[spellId]) then -- check importantskill
 				local target = M:getGUIDtoTarget(destGUID)
-				if (target) then 
+				if (target) then
 					for i=1,40 do
 						spid = 0
-						if (amount == 1) then 
+						if (amount == 1) then
 							_, _, _, _, _, time, _, _, _, _, spid = UnitBuff(target, i)
 						elseif (amount == 2) then
 							_, _, _, _, _, time, _, _, _, _, spid = UnitDebuff(target, i)
@@ -900,7 +900,7 @@ function atroxArenaViewer:COMBAT_LOG_EVENT_UNFILTERED(event, ...)
 					end
 				end
 			end
-			
+
 			if (not time) then time = 0 end
 			self:createMessage(self:getDiffTime(), eventType .. "," .. dest .. "," .. spellId .. "," .. amount .. "," .. time)
 		end
@@ -925,7 +925,7 @@ function atroxArenaViewer:COMBAT_LOG_EVENT_UNFILTERED(event, ...)
 		eventType = 16
 		-- 17 MANA
 	end
-	
+
 end
 
 ----
@@ -934,7 +934,7 @@ end
 -- @return true if it's excluded and unwanted spell
 function atroxArenaViewer:isExcludedAura(spellid)
 	for k,v in pairs(exceptauras) do
-		if (spellId == v) then 
+		if (spellId == v) then
 			return true
 		end
 	end
@@ -974,20 +974,20 @@ end
 
 function atroxArenaViewer:createPlayer(num)
 	local i = 1
-	
+
 	if (not T) then T = AAV_PlayStub:new() end
-	
+
 	T:hidePlayer(T.player)
 	T:setOnUpdate("start")
-	
+
 	T:setMatchData(num)
-	
+
 	if (not T:getMatchData(1)) then
 		return
 	end
-	
+
 	T:createPlayer(atroxArenaViewerData.data[num].bracket, atroxArenaViewerData.data[num].elapsed, false)
-	
+
 	print("|cffe392c5<AAV>|r Start playing: " .. AAV_COMM_MAPS[atroxArenaViewerData.data[num].map] .. " at " .. atroxArenaViewerData.data[num].startTime)
 end
 
@@ -1044,7 +1044,7 @@ function atroxArenaViewer:getRecursiveExport(inTable)
 		recurse(inTable, 1);
 	end
 	ret = ret.."}";
-	
+
 	local serialized = libS:Serialize(ret)
 	local addedCheck = format("%s::%s", serialized, "Jammin")
 	local compressed =  libC:Compress(addedCheck)
@@ -1062,14 +1062,14 @@ end
 -- @param num matchid
 function atroxArenaViewer:playMatch(num)
 	local pre
-	
+
 	if (T:getCurrentMatchData()) then
 		pre = AAV_Util:split(T:getCurrentMatchData(), ',')
 		T:removeAllCC()
 		T:removeAllCooldowns()
 		T:setTickTime(tonumber(pre[1]))
 		T:setMapText(T:getMatch()["map"])
-		
+
 		T:handleTimer("start")
 	else
 		print("Error - bad match data.")
@@ -1079,10 +1079,10 @@ end
 function atroxArenaViewer:evaluateMatchData()
 	local done = false
 	local post
-	
+
 	T:setTickTime(T:getTickTime() + atroxArenaViewerData.current.interval)
 	T:updatePlayerTick()
-	
+
 	while not done do
 		if (not T:getCurrentMatchData()) then
 			T:handleTimer("stop")
@@ -1101,16 +1101,16 @@ end
 
 function atroxArenaViewer:executeMatchData(tick, data)
 	local t = tonumber(data[2])
-	
+
 	-- init
 	if (t == 0) then
 		T:setBar(tonumber(data[3]), tonumber(data[4]))
 		T:setMaxBar(tonumber(data[3]), tonumber(data[5]))
 		--[[
 		T:removeAllAuras(tonumber(data[3]))
-		
+
 		local buffs = AAV_Util:split(data[6], ";")
-		
+
 		if (buffs) then
 			for k,v in pairs(buffs) do
 				for c,w in pairs(buffs) do
@@ -1120,7 +1120,7 @@ function atroxArenaViewer:executeMatchData(tick, data)
 				T:addAura(tonumber(data[3]), tonumber(v), 1)
 			end
 		end
-		
+
 		local debuffs = AAV_Util:split(data[7], ";")
 		if (debuffs) then
 			for k,v in pairs(debuffs) do
@@ -1131,89 +1131,89 @@ function atroxArenaViewer:executeMatchData(tick, data)
 	-- current HP
 	elseif (t == 1) then
 		T:setBar(tonumber(data[3]), tonumber(data[4]))
-		
+
 	-- max HP
 	elseif (t == 2) then
 		T:setMaxBar(tonumber(data[3]), tonumber(data[4]))
-		
+
 	-- damage
-	elseif (t == 3 or t == 4 or t == 5 or t == 6) then	
+	elseif (t == 3 or t == 4 or t == 5 or t == 6) then
 		T:addFloatingCombatText(tonumber(data[4]), tonumber(data[5]), tonumber(data[6]), 1)
 		--T:addDamage(tonumber(data[4]), tonumber(data[5]))
-		
-	-- heal	
+
+	-- heal
 	elseif (t == 7 or t == 8) then
 		T:addFloatingCombatText(tonumber(data[4]), tonumber(data[5]), tonumber(data[6]), 2)
 		--T:addHeal(tonumber(data[4]), tonumber(data[5]))
-		
+
 	-- cast starts
 	elseif (t == 9) then
 		T:addSkillIcon(tonumber(data[3]), tonumber(data[5]), true, tonumber(data[4]), tonumber(data[6]))
-		
+
 	-- cast success
 	elseif (t == 10) then
 		T:addSkillIcon(tonumber(data[3]), tonumber(data[5]), false, tonumber(data[4]))
-		
+
 		if (tonumber(data[6]) and AAV_CCSKILS[tonumber(data[5])]) then
 			T:addCooldown(tonumber(data[3]), tonumber(data[5]), AAV_CCSKILS[tonumber(data[5])])
 		end
-		
+
 	elseif (t == 11) then
 		-- cast interrupt, not implemented
-		
+
 	elseif (t == 12) then
 		-- spell_interrupt
 		T:interruptSkill(tonumber(data[3]), tonumber(data[4]), tonumber(data[5]), tonumber(data[6]))
-		
+
 	elseif (t == 13) then
 		-- spell_aura_applied
 		T:addAura(tonumber(data[3]), tonumber(data[4]), tonumber(data[5]))
 		if (data[6] and tonumber(data[6]) > 0 and AAV_IMPORTANTSKILLS[tonumber(data[4])]) then
 			T:addCC(tonumber(data[3]), tonumber(data[4]), tonumber(data[6]), AAV_IMPORTANTSKILLS[tonumber(data[4])])
 		end
-		
+
 		if (AAV_BUFFSTOSKILLS[tonumber(data[4])]) then
 			T:addSkillIcon(tonumber(data[3]), tonumber(data[4]), false, nil)
 		end
-		
+
 	elseif (t == 14) then
 		-- spell_aura_removed
 		T:removeAura(tonumber(data[3]), tonumber(data[4]), tonumber(data[5]))
 		if (AAV_IMPORTANTSKILLS[tonumber(data[4])]) then
 			T:removeCC(tonumber(data[3]), tonumber(data[4]))
 		end
-		
+
 	elseif (t == 15) then
 		-- spell_aura_refreshed
-		
+
 	elseif (t == 16) then
 		-- died
-		
+
 	elseif (t == 17) then
 		-- mana changes
 		T:setMana(tonumber(data[3]), tonumber(data[4]))
-		
+
 	elseif (t == 18) then
 		-- visibility changes
 		T:setVisibility(tonumber(data[3]), tonumber(data[4]))
-		
+
 	end
-	
+
 end
 function atroxArenaViewer:CHAT_MSG_ADDON(event, prefix)
 	if(prefix == "ARENASPEC") then
 		if (atroxArenaViewerData.current.inArena) then
-			
+
 			self:handleEvents("unregister")
 			self:UnregisterEvent("CHAT_MSG_BG_SYSTEM_NEUTRAL")
 			self:UnregisterEvent("CHAT_MSG_RAID_BOSS_EMOTE")
 			self:UnregisterEvent("ARENA_OPPONENT_UPDATE")
-			
+
 			atroxArenaViewerData.current.inArena = false
 			atroxArenaViewerData.current.entered = 0
 			atroxArenaViewerData.current.time = 0
 			atroxArenaViewerData.current.move = 0
-			
+
 		end
 	end
 end
@@ -1235,35 +1235,35 @@ function atroxArenaViewer:importMatch(encoded)
 		local decompressed, message = libC:Decompress(decoded)
 		if(not decompressed) then
 			print("|cffe392c5<AAV>|r error decompressing: " .. message)
-			return 
+			return
 		end
-	
+
 		-- Deserialize the decompressed data
 		local serializedData, success, theCheck
 		serializedData = AAV_Util:split(decompressed, "^^::") -- "^^" indicates the end of the AceSerializer string
 		if (not serializedData[1] or serializedData[2] ~= "Jammin") then
 			print("|cffe392c5<AAV>|r ERROR - String is invalid or corrupted!")
 			print(serializedData[2])
-			return 
+			return
 		end
-		
+
 		serializedData[1] = format("%s%s", serializedData[1], "^^") --Add back the AceSerializer terminator
-		
+
 		local result, final = libS:Deserialize(serializedData[1])
 		if (not result) then
 			print("|cffe392c5<AAV>|r error deserializing " .. final)
-			return 
+			return
 		end
-		
+
 		-- STRING-TO_TABLE
 		local strToTable = loadstring(format("%s %s", "return", final))
 		if strToTable then
 			message, finalData = pcall(strToTable)
 		end
-		
+
 		if not finalData then
 			print("|cffe392c5<AAV>|r Error converting lua string to table:", message)
-			return 
+			return
 		end
 		return finalData
 	end
@@ -1287,8 +1287,8 @@ function spellArg(order, spellID, ...)
 	if spellname ~= nil then
 	return {
 		type = 'toggle',
-		name = "\124T"..icon..":24\124t"..spellname,							
-		desc = function () 
+		name = "\124T"..icon..":24\124t"..spellname,
+		desc = function ()
 			GameTooltip:SetHyperlink(GetSpellLink(spellID));
 		end,
 		descStyle = "custom",
@@ -1315,7 +1315,7 @@ end
 function getOption(info)
 	local name = info[#info]
 	local parent = info[#info-2]
-	
+
 	if(parent ~= "slidercds") then
 		name = atroxArenaViewerData.defaults.profile[info[#info-1]]
 	elseif(parent == "slidercds") then
@@ -1329,5 +1329,3 @@ function getOption(info)
 	end
 	return name
 end
-
-

@@ -4,21 +4,9 @@
 ## SavedVariables: atroxArenaViewerData
 ## Notes: Record and view arena replays.
 
-lib\LibStub-1.0\LibStub-1.0.xml
-lib\lib-st\lib-st.xml
-lib\CallbackHandler-1.0\CallbackHandler-1.0.xml
-lib\AceAddon-3.0\AceAddon-3.0.xml
-lib\AceGUI-3.0\AceGUI-3.0.xml
-lib\AceConfig-3.0\AceConfig-3.0.xml
-lib\AceTimer-3.0\AceTimer-3.0.xml
-lib\AceEvent-3.0\AceEvent-3.0.xml
-lib\AceComm-3.0\AceComm-3.0.xml
-lib\AceLocale-3.0\AceLocale-3.0.xml
-lib\AceSerializer-3.0\AceSerializer-3.0.xml
-lib\AceConfig-3.0\AceConfig-3.0.xml
-lib\LibCompress\LibCompress.lua
-lib\LibBase64-1.0\lib.xml
-
+#@no-lib-strip@
+embeds.xml
+#@end-no-lib-strip@
 
 lang\lang.en.lua
 lang\lang.cn.lua

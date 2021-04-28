@@ -11,56 +11,57 @@ function AAV_Gui:createPlayerFrame(obj, bracket)
 	if (not bracket) then
 		return
 	end
-	
+
 	currentPlayerObject = obj -- Fix this later (TODO)
 	-- ROOT FRAME
-	local o = CreateFrame("Frame", "Root", UIParent)
+	local o = CreateFrame("Frame", "AAVRoot", UIParent)
 	o:SetFrameStrata("HIGH")
 	o:SetWidth(560)
 	o:SetPoint("Center", 0, 0)
 	self:setPlayerFrameSize(o, bracket)
 	--MATCH PLAYER
-	local f = CreateFrame("Frame", "MatchPlayer", o)
+	local f = CreateFrame("Frame", "$parentMatchPlayer", o)
 	f:SetFrameStrata("HIGH")
 	f:SetWidth(560)
 	f:SetPoint("TOPLEFT", o, "TOPLEFT", 0, 0)
 	currentPlayerFrame = f:GetParent() -- Fix this later (TODO)
 	self:setPlayerFrameSize(f, bracket)
-	
+
 	o:SetBackdrop({
 	  bgFile="Interface\\DialogFrame\\UI-DialogBox-Background",
-	  edgeFile="Interface\\DialogFrame\\UI-DialogBox-Border",
-	  tile=1, tileSize=10, edgeSize=10, 
+	  edgeFile="Interface\\Addons\\AAVBlackrock\\res\\UI-DialogBox-Border",
+	  tile=1, tileSize=10, edgeSize=1,
 	  insets={left=3, right=3, top=3, bottom=3}
 	})
+	o:SetBackdropColor(0, 0, 0, 1)
 	o:SetMovable(true)
 	o:EnableMouse(true)
 	o:SetScript("OnMouseDown", o.StartMoving)
 	o:SetScript("OnMouseUp", o.StopMovingOrSizing)
 	o:Show()
-	
+
 	local m = CreateFrame("Frame", "$parentMapText", o)
 	m:SetHeight(30)
 	m:SetPoint("TOP", 0, 18)
 	m:SetBackdrop({
 	  bgFile="Interface\\DialogFrame\\UI-DialogBox-Background",
 	  edgeFile="Interface\\DialogFrame\\UI-DialogBox-Border",
-	  tile=1, tileSize=10, edgeSize=20, 
-	  insets={left=3, right=3, top=3, bottom=3}, 
+	  tile=1, tileSize=10, edgeSize=1,
+	  insets={left=3, right=3, top=3, bottom=3},
 	})
 	m:SetBackdropColor(0, 0, 0, 1)
-	
+
 	local mt = m:CreateFontString("$parentName", "ARTWORK", "GameFontNormal")
-	mt:SetFont("Fonts\\FRIZQT__.TTF", 16, "OUTLINE")
+	mt:SetFont("Interface\\Addons\\AAVBlackrock\\res\\Fonts\\PTSansNarrow.TTF", 16, "NONE")
 	mt:SetText("???")
 	mt:SetPoint("CENTER", m, 0, 0)
 	mt:Show()
-	
+
 	--CLOSE BUTTON
 	local btn = CreateFrame("Button", "PlayerCloseButton", o)
 	btn:SetHeight(32)
 	btn:SetWidth(32)
-	
+
 	btn:SetNormalTexture("Interface\\Buttons\\UI-Panel-MinimizeButton-Up")
 	btn:SetPushedTexture("Interface\\Buttons\\UI-Panel-MinimizeButton-Down")
 	btn:SetHighlightTexture("Interface\\Buttons\\UI-Panel-MinimizeButton-Highlight", "ADD")
@@ -72,7 +73,7 @@ function AAV_Gui:createPlayerFrame(obj, bracket)
 		obj:setOnUpdate("stop")
 	end)
 	btn:Show()
-	
+
 	--BACK BUTTON
 	local backbtn = CreateFrame("Button", "PlayerBackButton", f, "UIPanelButtonTemplate")
 	backbtn:SetHeight(25)
@@ -86,7 +87,7 @@ function AAV_Gui:createPlayerFrame(obj, bracket)
 		AAV_TableGui:showMatchesFrame()
 	end)
 	backbtn:Show()
-	
+
 	--REPLAY BUTTON
 	local replay = CreateFrame("BUTTON", "$parentViewreplay", f, "UIPanelButtonTemplate")
 	replay:SetPoint("BOTTOMRIGHT", -190, 15)
@@ -94,7 +95,7 @@ function AAV_Gui:createPlayerFrame(obj, bracket)
 	replay:SetHeight(25)
 	replay:Show()
 	replay:SetText("Replay from 0.00")
-	
+
 	--PAUSE BUTTON
 	local pause = CreateFrame("BUTTON", "$parentPlayButton", f, "UIPanelButtonTemplate")
 	pause:SetPoint("BOTTOMLEFT", 5, 70)
@@ -102,8 +103,8 @@ function AAV_Gui:createPlayerFrame(obj, bracket)
 	pause:SetHeight(25)
 	pause:SetText("Pause")
 	pause:Show()
-	
-	
+
+
 	return o, f, mt, replay, pause
 end
 
@@ -119,74 +120,73 @@ end
 -- @return dr frame debuff range
 function AAV_Gui:createEntityBar(parent, v, y)
 	local anchor, offx, manauser
-	
+
 	if (v.team==1) then anchor = "TOPLEFT" else anchor = "TOPRIGHT" end
 	if (v.team==1) then offx = 55 else offx = 325 end
-	
+
 	manauser = AAV_Util:determineManaUser(v.class)
-	
+
 	-- FRAME
 	local a = CreateFrame("Frame", "$parentEntity" .. v.team .. y, parent)
 	a:SetWidth(180)
 	a:SetHeight(15)
 	a:SetPoint("TOPLEFT", parent, offx, -70-(y * AAV_GUI_VERTICALFRAMEDISTANCE))
 	a:Show()
-	
+
 	-- ICON
 	local c = CreateFrame("Frame", "$parentClazz", a)
 	--c:SetFrameStrata("MEDIUM")
 	c:SetWidth(30)
 	c:SetHeight(30)
-	
+
 	local t = c:CreateTexture(nil)
-	
+
 	if (not v.class or v.class == "Unknown") then
 		t:SetTexture("Interface\\Icons\\INV_Misc_QuestionMark.blp")
 	else
 		t:SetTexture("Interface\\Addons\\AAVBlackrock\\res\\" .. v.class .. ".tga")
 	end
+	t:SetTexCoord(0.1,0.9,0.1,0.9)
 	t:SetAllPoints(c)
 	c.texture = t
 	c:SetPoint("TOPLEFT", a:GetName(), 0, 15)
 	c:Show()
 
-	
-	
+
+
 	-- HEALTH BAR
 	local b = CreateFrame("STATUSBAR", "$parentAAVHealthBar", a)
 	b:SetWidth(135)
 	if (manauser) then b:SetHeight(AAV_GUI_HEALTHBARHEIGHT - AAV_GUI_MANABARHEIGHT) else b:SetHeight(AAV_GUI_HEALTHBARHEIGHT) end
-	b:SetStatusBarTexture("Interface\\Addons\\AAVBlackrock\\res\\bartexture.tga")
-	--b:SetStatusBarColor(AAV_Util:getTargetColor(v, false))
+	b:SetStatusBarTexture("Interface\\Addons\\AAVBlackrock\\res\\Textures\\normTex2.tga")
 	b:SetMinMaxValues(0, UnitHealth("player"))
 	b:SetPoint("TOPLEFT", a:GetName(), 30, 1)
 	b:Show()
-	
+
 	local bback = b:CreateTexture(nil)
 	bback:SetTexture(0.0, 0.0, 0.0)
 	bback:SetAllPoints(b)
 	b.texture = bback
-	
+
 	-- MANA BAR
 	local m = CreateFrame("STATUSBAR", "$parentManaBar", a)
 	m:SetWidth(135)
 	m:SetHeight(AAV_GUI_MANABARHEIGHT)
-	m:SetStatusBarTexture("Interface\\Addons\\AAVBlackrock\\res\\bartexture.tga")
-	--m:SetStatusBarTexture("Interface\\TargetingFrame\\UI-StatusBar")
+	m:SetStatusBarTexture("Interface\\Addons\\AAVBlackrock\\res\\Textures\\normTex2.tga")
 	m:SetMinMaxValues(0,100)
-	
-	if (manauser) then m:SetStatusBarColor(0.5333333333333333, 0.5333333333333333, 1) end
-	
+
+	if (manauser) then m:SetStatusBarColor(0.55, 0.55, 0.89) end
+
 	m:SetMinMaxValues(0,100)
 	m:SetPoint("BOTTOMLEFT", a:GetName(), "TOPLEFT", 30, -(AAV_GUI_HEALTHBARHEIGHT - 1))
 	if (manauser) then m:Show() else m:Hide() end
-	
+
 	local mback = m:CreateTexture(nil)
 	mback:SetTexture(0.0, 0.0, 0.0)
 	mback:SetAllPoints(m)
 	m.texture = mback
-	
-	
+
+
 	-- COMBAT TEXT
 	local cr = CreateFrame("Frame", "$parentCombatRange", parent)
 	cr:SetFrameStrata("HIGH")
@@ -195,14 +195,14 @@ function AAV_Gui:createEntityBar(parent, v, y)
 	if (v.team == 1) then cr:SetPoint("BOTTOMLEFT", b, "BOTTOMRIGHT", -5, 0) end
 	if (v.team == 2) then cr:SetPoint("BOTTOMRIGHT", b, "BOTTOMLEFT", -10, 0) end
 	cr:Show()
-	
+
 	-- PLAYER NAME
 	local n = c:CreateFontString("$parentName", "ARTWORK", "GameFontNormal")
-	n:SetFont("Fonts\\FRIZQT__.TTF", 14, "OUTLINE")
+	n:SetFont("Interface\\Addons\\AAVBlackrock\\res\\Fonts\\PTSansNarrow.TTF", 14, "NONE")
 	n:SetText(v.name)
 	n:SetPoint("CENTER", b, 0, 15)
 	n:Show()
-	
+
 	-- SKILL
 	local sr = CreateFrame("Frame", "$parentSkillRange", parent)
 	sr:SetFrameStrata("HIGH")
@@ -210,8 +210,8 @@ function AAV_Gui:createEntityBar(parent, v, y)
 	sr:SetHeight(30)
 	sr:SetPoint("BOTTOMLEFT", a, "TOPLEFT", 0, 15)
 	sr:Show()
-	
-	
+
+
 	return a, b, c, cr, n, sr, m
 end
 
@@ -223,7 +223,7 @@ function AAV_Gui:createAuraRanges(parent)
 	br:SetHeight(AAV_USEDSKILL_ICONBUFFSIZE)
 	br:SetPoint("TOPLEFT", parent, "BOTTOMLEFT", 0, -2)
 	br:Show()
-	
+
 	-- DEBUFF
 	local dr = CreateFrame("Frame", "$parentDebuffRange", parent)
 	dr:SetFrameStrata("HIGH")
@@ -231,42 +231,42 @@ function AAV_Gui:createAuraRanges(parent)
 	dr:SetHeight(AAV_USEDSKILL_ICONBUFFSIZE)
 	dr:SetPoint("TOPLEFT", parent, "BOTTOMLEFT", 0, -(AAV_USEDSKILL_ICONBUFFSIZE+2))
 	dr:Show()
-	
+
 	return br, dr
 end
 
 function AAV_Gui:createCooldown(parent)
-	
+
 	local f = CreateFrame("Frame", "$parentCooldown", parent)
 	f:SetWidth(40)
 	f:SetHeight(15)
 	f:SetAlpha(1)
 	f:Show()
-	
+
 	-- ICON
 	local ic = CreateFrame("Frame", "$parentCooldownText", f)
 	ic:SetWidth(AAV_CC_ICONSIZE)
 	ic:SetHeight(AAV_CC_ICONSIZE)
 	ic:SetPoint("LEFT", f, 0, 0)
 	ic:Show()
-	
+
 	-- TEXT
 	local n = ic:CreateFontString("$parentName", "ARTWORK", "GameFontNormal")
-	n:SetFont("Fonts\\FRIZQT__.TTF", 10, "OUTLINE")
+	n:SetFont("Interface\\Addons\\AAVBlackrock\\res\\Fonts\\PTSansNarrow.TTF", 10, "NONE")
 	n:SetText("?")
 	n:SetPoint("LEFT", f, AAV_CC_ICONSIZE + 2, 0)
 	n:Show()
-	
+
 	-- TEXTURE
 	local t = ic:CreateTexture(nil)
 	t:SetAllPoints(ic)
 	--t:SetTexture(0.0, 0.0, 0.0)
 	t:Show()
 	ic.texture = t
-	
-	
+
+
 	return f, ic, n
-	
+
 end
 
 function AAV_Gui:createCooldownRanges(parent, team)
@@ -277,72 +277,58 @@ function AAV_Gui:createCooldownRanges(parent, team)
 	if (team == 1) then cb:SetPoint("BOTTOMRIGHT", parent, "TOPLEFT", 0, -52 + AAV_CC_ICONSIZE) end
 	if (team == 2) then cb:SetPoint("BOTTOMLEFT", parent, "TOPRIGHT", 0, -52 + AAV_CC_ICONSIZE) end
 	cb:Show()
-	
+
 	return cb
 end
 
 function AAV_Gui:createBarHealthText(parent)
 	local a = parent:CreateFontString("$parentHPText","ARTWORK","GameFontNormal")
-	a:SetFont("Fonts\\FRIZQT__.TTF", 10)
+	a:SetFont("Interface\\Addons\\AAVBlackrock\\res\\Fonts\\PTSansNarrow.TTF", 10)
 	a:SetText("100%")
 	a:SetPoint("CENTER", parent:GetName(), 0, 1)
 	a:Show()
-	
+
 	return a
 end
 
 function AAV_Gui:createSeekerBar(parent, elapsed)
-	
+
 	local f = CreateFrame("Frame", "$parentSeekerBarBack", parent)
 	--f:SetFrameStrata("LOW")
 	f:SetWidth(435)
 	f:SetHeight(12)
-	
+
 	local t = f:CreateTexture(nil)
 	--t:SetTexture(0.0, 0.0, 0.0)
-	t:SetTexture("Interface\\Addons\\AAVBlackrock\\res\\Smooth.tga")
-	t:SetVertexColor(0.4313, 0.4313, 0.4313)
+	t:SetTexture("Interface\\Addons\\AAVBlackrock\\res\\Textures\\normTex2.tga")
+	t:SetVertexColor(0.34, 0.34, 0.34)
 	t:SetAllPoints(f)
 	f.texture = t
-	
+
 	--c:SetAllPoints(parent)
 	f:SetPoint("BOTTOMLEFT", parent:GetName(), 55, 75)
 	f:Show()
-	
-	
-	
+
+
+
 	local a = CreateFrame("STATUSBAR", "$parentSeekerBar", f)
 	--a:SetFrameStrata("MEDIUM")
 	a:SetWidth(f:GetWidth())
 	a:SetHeight(f:GetHeight())
-	a:SetStatusBarTexture("Interface\\Addons\\AAVBlackrock\\res\\Smooth.tga")
+	a:SetStatusBarTexture("Interface\\Addons\\AAVBlackrock\\res\\Textures\\normTex2.tga")
 	a:SetStatusBarColor(1, 1, 1)
 	a:SetMinMaxValues(0, elapsed)
 	a:SetValue(0)
 	a:SetPoint("BOTTOMLEFT", parent, 55, 75)
 	--a:SetPoint("TOPLEFT", speedframe, 0, 0)
 	a:Show()
-	
-  
-	
-	local left = CreateFrame("FRAME", nil, a)
-	left:SetHeight(12)
-	left:SetWidth(12)
-	left:SetPoint("BOTTOMLEFT", a, -5, 0)
-	left:Show()
-	
-	local t = left:CreateTexture(nil)
-	t:SetTexture("Interface\\Addons\\AAVBlackrock\\res\\playerleft.tga")
-	t:SetAllPoints(left)
-	left.texture = t
-	
-	
+
 	local speedval = parent:CreateFontString("$parentSpeedTitle", "ARTWORK", "GameFontNormal")
-	speedval:SetFont("Fonts\\FRIZQT__.TTF", 16, "OUTLINE")
+	speedval:SetFont("Interface\\Addons\\AAVBlackrock\\res\\Fonts\\PTSansNarrow.TTF", 16, "NONE")
 	speedval:SetJustifyH("LEFT")
 	speedval:SetPoint("BOTTOMLEFT", parent, 15, 20)
 	speedval:Show()
-	
+
 	local slider = CreateFrame("SLIDER", "$parentSpeed", parent, "OptionsSliderTemplate")
 	slider:SetHeight(15)
 	slider:SetWidth(100)
@@ -354,13 +340,13 @@ function AAV_Gui:createSeekerBar(parent, elapsed)
 	--getglobal(slider:GetName() .. 'Text'):SetText('Speed');
 	slider:SetPoint("LEFT", speedval, "RIGHT", 5, -2)
 	slider:Show()
-	
+
 	local speed = parent:CreateFontString("$parentSpeedValue", "ARTWORK", "GameFontNormal")
 	speed:SetText("100%")
 	speed:SetJustifyH("LEFT")
 	speed:SetPoint("LEFT", slider, "RIGHT", 5, 0)
 	speed:Show()
-	
+
 	--[[
 	parent:SetScript("OnMouseWheel", function(arg)
 		local min, max = slider:GetMinMaxValues()
@@ -368,7 +354,7 @@ function AAV_Gui:createSeekerBar(parent, elapsed)
 		if (arg == -1 and slider:GetValue() > min) then slider:SetValue(slider:GetValueStep()) end
 	end)
 	--]]
-	
+
 	return a, f, slider, speedval, speed
 end
 
@@ -377,80 +363,80 @@ function AAV_Gui:createStatsFrame(parent)
 	stats:SetHeight(parent:GetHeight())
 	stats:SetWidth(parent:GetWidth())
 	stats:SetPoint("TOPLEFT", 0, -10)
-	
+
 	local ddone = stats:CreateFontString("$parentDamageDone", "ARTWORK", "GameFontNormal")
-	ddone:SetFont("Fonts\\FRIZQT__.TTF", 12, "OUTLINE")
+	ddone:SetFont("Interface\\Addons\\AAVBlackrock\\res\\Fonts\\PTSansNarrow.TTF", 12, "NONE")
 	ddone:SetJustifyH("CENTER")
 	ddone:SetPoint("TOPLEFT", stats, 200, -20)
 	ddone:SetText(L.DETAIL_DAMAGEDONE)
 	--ddone:SetTextColor()
 	ddone:Show()
-	
+
 	local hdmg = stats:CreateFontString("$parentDamageDone", "ARTWORK", "GameFontNormal")
-	hdmg:SetFont("Fonts\\FRIZQT__.TTF", 12, "OUTLINE")
+	hdmg:SetFont("Interface\\Addons\\AAVBlackrock\\res\\Fonts\\PTSansNarrow.TTF", 12, "NONE")
 	hdmg:SetJustifyH("CENTER")
 	hdmg:SetPoint("TOPLEFT", ddone, 70, 0)
 	hdmg:SetText(L.DETAIL_HIGHDAMAGE)
 	--hdmg:SetTextColor()
 	hdmg:Show()
-	
+
 	local hdone = stats:CreateFontString("$parentDamageDone", "ARTWORK", "GameFontNormal")
-	hdone:SetFont("Fonts\\FRIZQT__.TTF", 12, "OUTLINE")
+	hdone:SetFont("Interface\\Addons\\AAVBlackrock\\res\\Fonts\\PTSansNarrow.TTF", 12, "NONE")
 	hdone:SetJustifyH("CENTER")
 	hdone:SetPoint("TOPLEFT", hdmg, 70, 0)
 	hdone:SetText(L.DETAIL_HEALDONE)
 	--hdone:SetTextColor()
 	hdone:Show()
-	
+
 	local rating = stats:CreateFontString("$parentDamageDone", "ARTWORK", "GameFontNormal")
-	rating:SetFont("Fonts\\FRIZQT__.TTF", 12, "OUTLINE")
+	rating:SetFont("Interface\\Addons\\AAVBlackrock\\res\\Fonts\\PTSansNarrow.TTF", 12, "NONE")
 	rating:SetJustifyH("CENTER")
 	rating:SetPoint("TOPLEFT", hdone, 70, -12)
 	rating:SetText(L.DETAIL_RATING)
 	--rating:SetTextColor()
 	rating:Show()
-	
+
 	local mmr = stats:CreateFontString("$parentDamageDone", "ARTWORK", "GameFontNormal")
-	mmr:SetFont("Fonts\\FRIZQT__.TTF", 12, "OUTLINE")
+	mmr:SetFont("Interface\\Addons\\AAVBlackrock\\res\\Fonts\\PTSansNarrow.TTF", 12, "NONE")
 	mmr:SetJustifyH("CENTER")
 	mmr:SetPoint("TOPLEFT", rating, 80, 0)
 	mmr:SetText(L.DETAIL_MMR)
 	--mmr:SetTextColor()
 	mmr:Show()
-	
+
 	return stats
 end
 
 function AAV_Gui:createDetailTeam(parent, num, bracket)
-	
+
 	local team = parent:CreateFontString("$parentDamageDone", "ARTWORK", "GameFontNormal")
-	team:SetFont("Fonts\\FRIZQT__.TTF", 12, "OUTLINE")
+	team:SetFont("Interface\\Addons\\AAVBlackrock\\res\\Fonts\\PTSansNarrow.TTF", 12, "NONE")
 	team:SetJustifyH("LEFT")
 	team:SetPoint("TOPLEFT", rating, 0, 0)
 	--mmr:SetTextColor()
-	team:Show()	
+	team:Show()
 end
 
 
 
 function AAV_Gui:createButtonDetail(parent)
-	
+
 	local detail = CreateFrame("BUTTON", "$parentViewDetail", parent, "UIPanelButtonTemplate")
 	detail:SetPoint("BOTTOMRIGHT", -10, 15)
 	detail:SetWidth(120)
 	detail:SetHeight(25)
 	detail:Show()
-	
+
 	return detail
 end
 
 function AAV_Gui:createTeamHead(parent)
-	
+
 	local head = parent:CreateFontString("$parentName", "ARTWORK", "GameFontNormal")
-	head:SetFont("Fonts\\FRIZQT__.TTF", 20, "OUTLINE")
+	head:SetFont("Interface\\Addons\\AAVBlackrock\\res\\Fonts\\PTSansNarrow.TTF", 20, "NONE")
 	head:SetJustifyH("LEFT")
 	head:SetTextColor(1, 1, 1)
-	
+
 	return head
 end
 
@@ -459,55 +445,55 @@ function AAV_Gui:createDetailEntry(parent)
 	local entry = CreateFrame("Frame", "$parentEntry", parent)
 	entry:SetHeight(AAV_DETAIL_ENTRYHEIGHT)
 	entry:SetWidth(AAV_DETAIL_ENTRYWIDTH)
-	
+
 	local icon = CreateFrame("Frame", "$parentIcon", entry)
 	icon:SetWidth(20)
 	icon:SetHeight(20)
-	
+
 	local t = icon:CreateTexture(nil)
 	--t:SetTexture()
 	t:SetAllPoints(icon)
 	icon.texture = t
 	icon:SetPoint("TOPLEFT", entry, 20, -5)
 	icon:Show()
-	
+
 	local name = parent:CreateFontString("$parentName", "ARTWORK", "GameFontNormal")
-	name:SetFont("Fonts\\FRIZQT__.TTF", 12, "OUTLINE")
+	name:SetFont("Interface\\Addons\\AAVBlackrock\\res\\Fonts\\PTSansNarrow.TTF", 12, "NONE")
 	name:SetJustifyH("LEFT")
 	name:SetParent(entry)
 	name:SetPoint("BOTTOMLEFT", entry, 50, 0)
 	name:SetTextColor(1, 1, 1)
-	
+
 	local dd = parent:CreateFontString("$parentDamage", "ARTWORK", "GameFontNormal")
-	dd:SetFont("Fonts\\FRIZQT__.TTF", 12, "OUTLINE")
+	dd:SetFont("Interface\\Addons\\AAVBlackrock\\res\\Fonts\\PTSansNarrow.TTF", 12, "NONE")
 	dd:SetJustifyH("LEFT")
 	dd:SetParent(entry)
 	dd:SetPoint("BOTTOMLEFT", entry, 200, 0)
 	dd:SetTextColor(1, 1, 1)
-	
+
 	local hd = parent:CreateFontString("$parentHighest", "ARTWORK", "GameFontNormal")
-	hd:SetFont("Fonts\\FRIZQT__.TTF", 12, "OUTLINE")
+	hd:SetFont("Interface\\Addons\\AAVBlackrock\\res\\Fonts\\PTSansNarrow.TTF", 12, "NONE")
 	hd:SetJustifyH("LEFT")
 	hd:SetParent(entry)
 	hd:SetPoint("BOTTOMLEFT", dd, 70, 0)
 	hd:SetTextColor(1, 1, 1)
-	
+
 	local h = parent:CreateFontString("$parentHeal", "ARTWORK", "GameFontNormal")
-	h:SetFont("Fonts\\FRIZQT__.TTF", 12, "OUTLINE")
+	h:SetFont("Interface\\Addons\\AAVBlackrock\\res\\Fonts\\PTSansNarrow.TTF", 12, "NONE")
 	h:SetJustifyH("LEFT")
 	h:SetParent(entry)
 	h:SetPoint("BOTTOMLEFT", hd, 70, 0)
 	h:SetTextColor(1, 1, 1)
-	
+
 	local rc = parent:CreateFontString("$parentRating", "ARTWORK", "GameFontNormal")
-	rc:SetFont("Fonts\\FRIZQT__.TTF", 12, "OUTLINE")
+	rc:SetFont("Interface\\Addons\\AAVBlackrock\\res\\Fonts\\PTSansNarrow.TTF", 12, "NONE")
 	rc:SetJustifyH("LEFT")
 	rc:SetParent(entry)
 	rc:SetPoint("BOTTOMLEFT", h, 70, 0)
 	rc:SetTextColor(1, 1, 1)
-	
+
 	local mmr = parent:CreateFontString("$parentMMR", "ARTWORK", "GameFontNormal")
-	mmr:SetFont("Fonts\\FRIZQT__.TTF", 12, "OUTLINE")
+	mmr:SetFont("Interface\\Addons\\AAVBlackrock\\res\\Fonts\\PTSansNarrow.TTF", 12, "NONE")
 	mmr:SetJustifyH("LEFT")
 	mmr:SetParent(entry)
 	mmr:SetPoint("BOTTOMLEFT", rc, 80, 0)
@@ -518,22 +504,22 @@ end
 
 function AAV_Gui:createStatusText(parent)
 	local status = parent:CreateFontString("$parentStatus", "ARTWORK", "GameFontNormal")
-	status:SetFont("Fonts\\FRIZQT__.TTF", 16, "OUTLINE")
+	status:SetFont("Interface\\Addons\\AAVBlackrock\\res\\Fonts\\PTSansNarrow.TTF", 16, "NONE")
 	status:SetJustifyH("LEFT")
 	status:SetPoint("BOTTOMLEFT", parent, 15, 20)
 	status:Hide()
-	
+
 	return status
 end
 
 function AAV_Gui:createSeekerText(parent)
 	local b = parent:CreateFontString("$parentTick", "ARTWORK", "GameFontNormal")
-	b:SetFont("Fonts\\FRIZQT__.TTF", 16, "OUTLINE")
+	b:SetFont("Interface\\Addons\\AAVBlackrock\\res\\Fonts\\PTSansNarrow.TTF", 16, "NONE")
 	b:SetText("00:00.0")
 	b:SetJustifyH("LEFT")
 	b:SetPoint("LEFT", parent:GetName(), parent:GetWidth() + 5, 0)
 	b:Show()
-	
+
 	return b
 end
 
@@ -544,15 +530,15 @@ end
 function AAV_Gui:SetGameTooltip(msg, color, parent)
 	GameTooltip:SetOwner(parent, "ANCHOR_CURSOR", 200, 250)
 	GameTooltip:SetText(msg)
-	
+
 end
 
 ----
 -- @param parent
 function AAV_Gui:createCombatText(parent)
-	local f = parent:CreateFontString("$parentHPText","ARTWORK","GameFontNormal")
+	local f = parent:CreateFontString("$parentHPText","ARTWORK")
 	f:Show()
-	
+
 	return f
 end
 
@@ -560,30 +546,30 @@ end
 -- @param parent
 -- @param i for unique ussage in name
 function AAV_Gui:createUsedSkill(parent, i)
-	
+
 	local f = CreateFrame("Frame", "$parentSkill" .. i, parent)
 	f:SetWidth(AAV_USEDSKILL_ICONSIZE)
 	f:SetHeight(AAV_USEDSKILL_ICONSIZE)
 	f:SetAlpha(0)
 	f:Show()
-	
+
 	-- texture
 	local t = f:CreateTexture(nil)
 	t:SetAllPoints(f)
 	f.texture = t
-	
-	
+
+
 	local b = CreateFrame("Frame", "$parentBox", parent)
 	--b:SetAllPoints(f)
 	b:SetWidth(AAV_USEDSKILL_ICONSIZE-1)
 	b:SetHeight(AAV_USEDSKILL_ICONSIZE)
 	b:Show()
-	
+
 	-- texture
 	local tb = b:CreateTexture(nil)
 	tb:SetAllPoints(b)
 	b.texture = tb
-	
+
 	-- target color
 	local tc = CreateFrame("Frame", "$parentColor", f)
 	tc:SetPoint("TOP", f, 0, 5)
@@ -593,25 +579,14 @@ function AAV_Gui:createUsedSkill(parent, i)
 	local ttc = f:CreateTexture(nil)
 	ttc:SetAllPoints(tc)
 	tc.texture = ttc
-	
-	
+
 	-- target
 	local tar = CreateFrame("Frame", "$parentTarget", f)
 	tar:SetPoint("TOP", f, 0, 6)
 	tar:SetWidth(f:GetWidth())
 	tar:SetHeight(12)
 	tar:Hide()
-	-- texture
-	local tt = f:CreateTexture(nil)
-	tt:SetAllPoints(tar)
-	tt:SetTexCoord(0, 1, 0, 0.5);
-	tt:SetTexture("Interface\\Addons\\AAVBlackrock\\res\\TARGETBG.tga")
-	tar.texture = tt
-	--tar:SetFrameStrata("HIGH")
-	
-	
-	
-	
+
 	return f, b, tar, tc
 end
 
@@ -620,14 +595,14 @@ function AAV_Gui:createAura(parent, i)
 	f:SetWidth(AAV_USEDSKILL_ICONBUFFSIZE)
 	f:SetHeight(AAV_USEDSKILL_ICONBUFFSIZE)
 	f:Show()
-	
+
 	-- texture
 	local t = f:CreateTexture(nil)
 	t:SetAllPoints(f)
 	f.texture = t
-	
+
 	return f, n
-	
+
 end
 
 ----
@@ -642,35 +617,36 @@ end
 ----
 -- creates an interrupt frame to indicate, that a skill's been interrupted.
 -- @param parent a skillused object
--- @return frame 
-function AAV_Gui:createInterruptFrame(parent)	
-	
+-- @return frame
+function AAV_Gui:createInterruptFrame(parent)
+
 	local f = CreateFrame("Frame", "$parentX", parent)
 	f:SetFrameStrata("HIGH")
 	f:SetWidth(AAV_USEDSKILL_ICONSIZE)
 	f:SetHeight(AAV_USEDSKILL_ICONSIZE)
 	f:SetAllPoints(parent)
 	f:Show()
-	
+
 	local t = f:CreateTexture(nil, "HIGH")
-	t:SetTexture("Interface\\Addons\\AAVBlackrock\\res\\X.tga")
+	t:SetTexture("Interface\\Addons\\AAVBlackrock\\res\\Textures\\close.tga")
 	f.texture = t
 	t:SetAllPoints(f)
 	t:Show()
-	
+
 	return f
 end
 
 function AAV_Gui:createMinimapIcon(parent, player)
-	
-	local button = CreateFrame("Button", nil, Minimap)
-	button:SetFrameStrata("HIGH")
+
+	local button = CreateFrame("Button", "AAVBlackrock_MinimapButton", Minimap)
+	button:SetFrameStrata("LOW")
 	button:SetWidth(31)
 	button:SetHeight(31)
+	button:SetToplevel(true)
 	button:RegisterForClicks("AnyUp")
 	button:RegisterForDrag("RightButton")
 	button:SetHighlightTexture("Interface\\Minimap\\UI-Minimap-ZoomButton-Highlight")
-	
+
 	local x,y
 	if (atroxArenaViewerData.defaults.profile.minimapx and atroxArenaViewerData.defaults.profile.minimapy) then
 		x, y = atroxArenaViewerData.defaults.profile.minimapx, atroxArenaViewerData.defaults.profile.minimapy
@@ -678,7 +654,7 @@ function AAV_Gui:createMinimapIcon(parent, player)
 		x, y = -54.6, 58.8
 	end
 	button:SetPoint("CENTER", x, y)
-	
+
 	button:Show()
 
 	local overlay = button:CreateTexture(nil, "OVERLAY")
@@ -690,7 +666,7 @@ function AAV_Gui:createMinimapIcon(parent, player)
 	local icon = button:CreateTexture(nil, 'BACKGROUND')
 	icon:SetWidth(20)
 	icon:SetHeight(20)
-	icon:SetTexture("Interface\\Icons\\Spell_Magic_MageArmor")
+	icon:SetTexture("Interface\\Icons\\Achievement_Arena_2v2_7")
 	icon:SetTexCoord(0.05, 0.95, 0.05, 0.95)
 	icon:SetPoint("TOPLEFT", 7, -5)
 
@@ -710,7 +686,7 @@ function AAV_Gui:createMinimapIcon(parent, player)
 		["TRICORNER-BOTTOMLEFT"] = {true, true, false, true},
 		["TRICORNER-BOTTOMRIGHT"] = {false, true, true, true},
 	}
-	
+
 	button:SetScript("OnDragStart", function(self, btn)
 		self.dragging = true
 		self:LockHighlight()
@@ -721,7 +697,7 @@ function AAV_Gui:createMinimapIcon(parent, player)
 			local scale = Minimap:GetEffectiveScale()
 			px, py = px / scale, py / scale
 			local deg = math.deg(math.atan2(py - my, px - mx)) % 360
-			
+
 			local angle = math.rad(deg)
 			local x, y, q = math.cos(angle), math.sin(angle), 1
 			if x < 0 then q = q + 1 end
@@ -731,7 +707,7 @@ function AAV_Gui:createMinimapIcon(parent, player)
 			if quadTable[q] then
 				x, y = x*80, y*80
 			else
-				local diagRadius = 103.13708498985 
+				local diagRadius = 103.13708498985
 				x = math.max(-80, math.min(x*diagRadius, 80))
 				y = math.max(-80, math.min(y*diagRadius, 80))
 			end
@@ -741,16 +717,16 @@ function AAV_Gui:createMinimapIcon(parent, player)
 		end)
 		GameTooltip:Hide()
 	end)
-	
+
 	button:SetScript("OnDragStop", function(self, btn)
 		self.dragging = nil
 		self:SetScript('OnUpdate', nil)
 		icon:SetTexCoord(0.05, 0.95, 0.05, 0.95)
 		self:UnlockHighlight()
 	end)
-	
-	
-	
+
+
+
 	button:SetScript("OnEnter", function(self)
 		if not self.dragging then
 			GameTooltip:SetOwner(self, "ANCHOR_LEFT")
@@ -760,20 +736,20 @@ function AAV_Gui:createMinimapIcon(parent, player)
 			GameTooltip:Show()
 		end
 	end)
-	
+
 	button:SetScript("OnLeave", function(self)
 		GameTooltip:Hide()
 	end)
-	
+
 	local reset = function(tab) for k,v in pairs(tab) do tab[k] = nil end end
-	
+
 	-- MENU
 	local menu = CreateFrame("Frame", "AAVMinimapMenu", UIParent, "UIDropDownMenuTemplate")
 	local info = {}
 	UIDropDownMenu_Initialize(menu, function(self, level)
 		level = level or 1
 		info.disabled	= false
-		
+
 		if (level == 1) then
 			-- ENABLE RECORDING
 			reset(info)
@@ -783,18 +759,18 @@ function AAV_Gui:createMinimapIcon(parent, player)
 			info.hasArrow	= false
 			info.checked	= atroxArenaViewerData.current.record
 			info.func       = function() parent:changeRecording() end
-			
+
 			UIDropDownMenu_AddButton(info, level)
-			
+
 			-- PLAY MATCH
 			--[[info.text       = "Play match"
 			info.notCheckable = true
 			info.notClickable = false
 			info.hasArrow	= true
 			info.func		= nil
-			
-			UIDropDownMenu_AddButton(info, level)]]--	
-						
+
+			UIDropDownMenu_AddButton(info, level)]]--
+
 			-- DELETE MATCH
 			reset(info)
 			info.text       = "Delete"
@@ -802,9 +778,9 @@ function AAV_Gui:createMinimapIcon(parent, player)
 			info.notClickable = false
 			info.hasArrow	= true
 			info.func		= nil
-			
+
 			UIDropDownMenu_AddButton(info, level)
-			
+
 			 --EXPORT MATCH
 			reset(info)
 			info.text       = "Export Match"
@@ -812,9 +788,9 @@ function AAV_Gui:createMinimapIcon(parent, player)
 			info.notClickable = false
 			info.hasArrow	= true
 			info.func       = nil
-			
+
 			UIDropDownMenu_AddButton(info, level)
-			
+
 			 --IMPORT MATCH
 			reset(info)
 			info.text       = "Import Match"
@@ -822,9 +798,9 @@ function AAV_Gui:createMinimapIcon(parent, player)
 			info.notClickable = false
 			info.hasArrow	= false
 			info.func       = function() StaticPopup_Show("AAV_IMPORT_DIALOG") end
-			
+
 			UIDropDownMenu_AddButton(info, level)
-			
+
 			-- OPTIONS
 			reset(info)
 			info.text       = "Options"
@@ -832,18 +808,18 @@ function AAV_Gui:createMinimapIcon(parent, player)
 			info.notClickable = false
 			info.hasArrow	= false
 			info.func       = function() InterfaceOptionsFrame_OpenToCategory("AAVBlackrock") end
-			
+
 			UIDropDownMenu_AddButton(info, level)
-			
+
 		end
-		
+
 		if (level == 2) then
-			
+
 	--[[		if (UIDROPDOWNMENU_MENU_VALUE == "Play match") then
 				-- PLAY MATCH
-				
+
 				if (atroxArenaViewerData.data) then
-					
+
 					for i=1, math.ceil(#atroxArenaViewerData.data / 20) do
 						reset(info)
 						info.text = "Play Match " .. ((i-1) * 20)+1 .. "-" .. (i * 20)
@@ -851,10 +827,10 @@ function AAV_Gui:createMinimapIcon(parent, player)
 						info.notClickable = false
 						info.hasArrow = true
 						info.func = nil
-						
+
 						UIDropDownMenu_AddButton(info, level)
 					end
-					
+
 				else
 					reset(info)
 					info.text = "none found"
@@ -862,10 +838,10 @@ function AAV_Gui:createMinimapIcon(parent, player)
 					info.notClickable = true
 					info.hasArrow = false
 					info.func = nil
-					
+
 					UIDropDownMenu_AddButton(info, level)
 				end
-				
+
 
 				if (atroxArenaViewerData.data) then
 					for k,v in pairs(atroxArenaViewerData.data) do
@@ -874,7 +850,7 @@ function AAV_Gui:createMinimapIcon(parent, player)
 						info.notClickable = false
 						info.hasArrow = false
 						info.func = function() parent:createPlayer(k) parent:playMatch(k) end
-						
+
 						UIDropDownMenu_AddButton(info, level)
 					end
 				else
@@ -883,12 +859,12 @@ function AAV_Gui:createMinimapIcon(parent, player)
 					info.notClickable = true
 					info.hasArrow = false
 					info.func = nil
-					
+
 					UIDropDownMenu_AddButton(info, level)
 				end
 				--]]
-				
-				
+
+
 				if(UIDROPDOWNMENU_MENU_VALUE == "Delete") then
 					--DELETE
 					reset(info)
@@ -898,12 +874,12 @@ function AAV_Gui:createMinimapIcon(parent, player)
 					info.hasArrow = false
 					info.func = function()
 						while(#atroxArenaViewerData.data>0) do
-							atroxArenaViewer:deleteMatch(#atroxArenaViewerData.data)					
+							atroxArenaViewer:deleteMatch(#atroxArenaViewerData.data)
 						end
 						AAV_TableGui:refreshMatchesFrame()
 					end
 					UIDropDownMenu_AddButton(info, level)
-				
+
 		--[[		elseif (UIDROPDOWNMENU_MENU_VALUE == "Options") then
 					reset(info)
 					info.text = "Buffs and Debuffs"
@@ -914,9 +890,9 @@ function AAV_Gui:createMinimapIcon(parent, player)
 					info.r = 0.8901960784313725
 					info.g = 0.5725490196078431
 					info.b = 0.7725490196078431
-					
+
 					UIDropDownMenu_AddButton(info, level)
-					
+
 					reset(info)
 					info.text = "Don't Exceed Buffs and Debuffs"
 					info.notCheckable = false
@@ -924,16 +900,16 @@ function AAV_Gui:createMinimapIcon(parent, player)
 					info.hasArrow = false
 					info.checked = atroxArenaViewerData.defaults.profile.shortauras
 					info.func = function() atroxArenaViewerData.defaults.profile.shortauras = not atroxArenaViewerData.defaults.profile.shortauras end
-					
+
 					UIDropDownMenu_AddButton(info, level)
-					
+
 					reset(info)
 					info.notCheckable = true
 					info.notClickable = true
 					info.text = ""
-					
+
 					UIDropDownMenu_AddButton(info, level)
-					
+
 					reset(info)
 					info.text = "Health Bar Text"
 					info.notCheckable = true
@@ -943,55 +919,55 @@ function AAV_Gui:createMinimapIcon(parent, player)
 					info.r = 0.8901960784313725
 					info.g = 0.5725490196078431
 					info.b = 0.7725490196078431
-					
+
 					UIDropDownMenu_AddButton(info, level)
-					
+
 					reset(info)
 					info.text = "Percentage Health Value (100%)"
 					info.notCheckable = false
 					info.notClickable = false
 					info.hasArrow = false
 					info.checked = atroxArenaViewerData.defaults.profile.healthdisplay == 1
-					info.func = function() 
-						atroxArenaViewerData.defaults.profile.healthdisplay = 1 
-						if (atroxArenaViewer:getPlayer()) then atroxArenaViewer:getPlayer():updateHealthtext() end 
+					info.func = function()
+						atroxArenaViewerData.defaults.profile.healthdisplay = 1
+						if (atroxArenaViewer:getPlayer()) then atroxArenaViewer:getPlayer():updateHealthtext() end
 					end
-					
+
 					UIDropDownMenu_AddButton(info, level)
-					
+
 					reset(info)
 					info.text = "Absolute Health Value (20000)"
 					info.notCheckable = false
 					info.notClickable = false
 					info.hasArrow = false
 					info.checked = atroxArenaViewerData.defaults.profile.healthdisplay == 2
-					info.func = function() 
-						atroxArenaViewerData.defaults.profile.healthdisplay = 2 
-						if (atroxArenaViewer:getPlayer()) then atroxArenaViewer:getPlayer():updateHealthtext() end 
+					info.func = function()
+						atroxArenaViewerData.defaults.profile.healthdisplay = 2
+						if (atroxArenaViewer:getPlayer()) then atroxArenaViewer:getPlayer():updateHealthtext() end
 					end
-					
+
 					UIDropDownMenu_AddButton(info, level)
-					
+
 					reset(info)
 					info.text = "Deficit Health Value (-530/20000)"
 					info.notCheckable = false
 					info.notClickable = false
 					info.hasArrow = false
 					info.checked = atroxArenaViewerData.defaults.profile.healthdisplay == 3
-					info.func = function() 
-						atroxArenaViewerData.defaults.profile.healthdisplay = 3 
-						if (atroxArenaViewer:getPlayer()) then atroxArenaViewer:getPlayer():updateHealthtext() end 
+					info.func = function()
+						atroxArenaViewerData.defaults.profile.healthdisplay = 3
+						if (atroxArenaViewer:getPlayer()) then atroxArenaViewer:getPlayer():updateHealthtext() end
 					end
-					
+
 					UIDropDownMenu_AddButton(info, level)
-					
+
 					reset(info)
 					info.notCheckable = true
 					info.notClickable = true
 					info.text = ""
-					
+
 					UIDropDownMenu_AddButton(info, level)
-					
+
 					reset(info)
 					info.text = "Cheat Detector"
 					info.notCheckable = true
@@ -1001,9 +977,9 @@ function AAV_Gui:createMinimapIcon(parent, player)
 					info.r = 0.8901960784313725
 					info.g = 0.5725490196078431
 					info.b = 0.7725490196078431
-					
+
 					UIDropDownMenu_AddButton(info, level)
-					
+
 					reset(info)
 					info.text       = "Announce Cheaters in /say"
 					info.notCheckable = false
@@ -1011,29 +987,29 @@ function AAV_Gui:createMinimapIcon(parent, player)
 					info.hasArrow	= false
 					info.checked = atroxArenaViewerData.defaults.profile.announceCheaters
 					info.func = function() atroxArenaViewerData.defaults.profile.announceCheaters = not atroxArenaViewerData.defaults.profile.announceCheaters end
-					
+
 					UIDropDownMenu_AddButton(info, level)
-					
+
 					reset(info)
 					info.notCheckable = true
 					info.notClickable = true
 					info.text = ""
-					
+
 					UIDropDownMenu_AddButton(info, level)
-					
+
 					reset(info)
 					info.text       = "Slider Options"
 					info.notCheckable = true
 					info.notClickable = false
 					info.hasArrow	= true
 					info.func = function() InterfaceOptionsFrame_OpenToCategory("AAVBlackrock") end
-					
+
 					UIDropDownMenu_AddButton(info, level) ]]--
 
-			elseif (UIDROPDOWNMENU_MENU_VALUE == "Export Match") then	
-			
+			elseif (UIDROPDOWNMENU_MENU_VALUE == "Export Match") then
+
 				if (atroxArenaViewerData.data) then
-				
+
 					for i=1, math.ceil(#atroxArenaViewerData.data / 20) do
 						reset(info)
 						info.text = "Export Match " .. ((i-1) * 20)+1 .. "-" .. (i * 20)
@@ -1041,10 +1017,10 @@ function AAV_Gui:createMinimapIcon(parent, player)
 						info.notClickable = false
 						info.hasArrow = true
 						info.func = nil
-						
+
 						UIDropDownMenu_AddButton(info, level)
 					end
-					
+
 				else
 					reset(info)
 					info.text = "none found"
@@ -1052,10 +1028,10 @@ function AAV_Gui:createMinimapIcon(parent, player)
 					info.notClickable = true
 					info.hasArrow = false
 					info.func = nil
-					
+
 					UIDropDownMenu_AddButton(info, level)
 				end
-				
+
 				--[[
 				if (atroxArenaViewerData.data) then
 					for k,v in pairs(atroxArenaViewerData.data) do
@@ -1065,7 +1041,7 @@ function AAV_Gui:createMinimapIcon(parent, player)
 						info.notClickable = false
 						info.hasArrow = false
 						info.func = function() parent:exportMatch(k) StaticPopup_Show("AAV_EXPORT_DIALOG") end
-						
+
 						UIDropDownMenu_AddButton(info, level)
 					end
 				else
@@ -1075,19 +1051,19 @@ function AAV_Gui:createMinimapIcon(parent, player)
 					info.notClickable = true
 					info.hasArrow = false
 					info.func = nil
-					
+
 					UIDropDownMenu_AddButton(info, level)
 				end
 				--]]
 			end
 		end
-		
+
 		if (level == 3) then
-			
+
 			for i=1, math.ceil(#atroxArenaViewerData.data / 20) do
-				
+
 				if (UIDROPDOWNMENU_MENU_VALUE == "Export Match " .. ((i-1) * 20)+1 .. "-" .. (i * 20)) then
-					
+
 					if (atroxArenaViewerData.data) then
 						for j=((i-1)*20)+1, (i*20) do
 							if (not atroxArenaViewerData.data[j]) then break end
@@ -1097,7 +1073,7 @@ function AAV_Gui:createMinimapIcon(parent, player)
 							info.notClickable = false
 							info.hasArrow = false
 							info.func = function() parent:exportMatch(j) StaticPopup_Show("AAV_EXPORT_DIALOG") end
-							
+
 							UIDropDownMenu_AddButton(info, level)
 						end
 					else
@@ -1107,20 +1083,20 @@ function AAV_Gui:createMinimapIcon(parent, player)
 						info.notClickable = true
 						info.hasArrow = false
 						info.func = nil
-						
+
 						UIDropDownMenu_AddButton(info, level)
 					end
-					
+
 				end
 			end
-			
-			
+
+
 		end
-		
+
 	end, "MENU")
-	
+
     --ToggleDropDownMenu(1, nil, TomTomPingMenu, "cursor", 0, 0);
-	
+
 	button:SetScript("OnClick", function(button, clickType)
 		if(clickType == "LeftButton") then
 			if(AAV_TableGui:isMatchesFrameShowing()) then
@@ -1138,78 +1114,78 @@ function AAV_Gui:createMinimapIcon(parent, player)
 			ToggleDropDownMenu(1, nil, menu, button, 10, 10);
 		end
 	end)
-	
+
 	return button
 end
 
 
 function AAV_Gui:createCC(parent, id)
-	
+
 	-- FRAME
 	local f = CreateFrame("FRAME", "$parentCC" .. id, parent)
 	f:SetSize(30, 30)
-	
+
 	-- TEXTURE
 	local t = f:CreateTexture(nil)
 	f.texture = t
 	t:SetAllPoints(f)
 	t:Show()
-	
+
 	-- TIMER
 	local n = f:CreateFontString("$parentName", "ARTWORK", "GameFontNormal")
-	n:SetFont("Fonts\\FRIZQT__.TTF", 10, "OUTLINE")
+	n:SetFont("Interface\\Addons\\AAVBlackrock\\res\\Fonts\\PTSansNarrow.TTF", 10, "NONE")
 	n:SetJustifyH("LEFT")
 	n:SetPoint("BOTTOMLEFT", f, 3, 0)
 	n:Show()
-	
+
 	return f, n
-	
+
 end
 function AAV_Gui:createSliderCD(parent, timestamp, spellID, TeamID, elapsed, source)
 	local percent = 1
 	local name, rank, icon = GetSpellInfo(spellID)
-	
+
 	if(elapsed > 0) then
 		 percent= timestamp/elapsed
 	end
-	
+
   -- ARROWFRAME
 	local arrowframe = CreateFrame("Frame", "$parentCD"..spellID, parent)
 	arrowframe:SetWidth(10)
 	arrowframe:SetHeight(10)
 	arrowframe:SetFrameStrata("HIGH")
-	
+
 	local actualpoint= math.floor(percent*parent:GetWidth())
-	
+
 	-- ARROWTEXTURE
 	local arrowtex = arrowframe:CreateTexture(nil)
 	arrowtex:SetTexture("Interface\\Addons\\AAVBlackrock\\res\\arrowDOT.tga")
 	arrowtex:SetAllPoints(arrowframe)
 	arrowframe.texture = arrowtex
 	arrowframe:Show()
-	
+
 	--ICON FRAME
 	local iconframe = CreateFrame("Frame", "$parenticon", arrowframe)
 	iconframe:SetWidth(16)
 	iconframe:SetHeight(16)
 	iconframe:SetFrameStrata("HIGH")
 	iconframe:EnableMouse(true)
-	iconframe:SetScript("OnEnter", function() 
+	iconframe:SetScript("OnEnter", function()
 		iconframe:SetScript("OnUpdate", function()
 			AAV_Gui:SetGameTooltip(source , 0, iconframe)
 		end)
 	end)
-	iconframe:SetScript("OnLeave", function() 
+	iconframe:SetScript("OnLeave", function()
 		GameTooltip:FadeOut()
 		iconframe:SetScript("OnUpdate", nil)
 	end)
-	
+
 	--ICON TEXTURE
 	local icontex = iconframe:CreateTexture(nil)
 	icontex:SetTexture(icon)
 	icontex:SetAllPoints(iconframe)
 	iconframe.texture = icontex
-	iconframe:Show()	
+	iconframe:Show()
 
 	if(TeamID==0) then
 		arrowframe:SetPoint("BOTTOMLEFT", parent, actualpoint, -8)
@@ -1218,13 +1194,13 @@ function AAV_Gui:createSliderCD(parent, timestamp, spellID, TeamID, elapsed, sou
 		arrowframe:SetPoint("BOTTOMLEFT", parent, actualpoint, 12)
 		iconframe:SetPoint("BOTTOMLEFT", parent, actualpoint-3, 20)
 	end
-	
-	
+
+
 	return arrowframe, arrrowtex
 end
 function AAV_Gui:createHackEntry(parent)
 	local cheattext = parent:CreateFontString("$parentcheattext", "ARTWORK", "GameFontNormal")
-	cheattext:SetFont("Fonts\\FRIZQT__.TTF", 12, "OUTLINE")
+	cheattext:SetFont("Interface\\Addons\\AAVBlackrock\\res\\Fonts\\PTSansNarrow.TTF", 12, "NONE")
 	cheattext:SetJustifyH("LEFT")
 	cheattext:SetParent(parent)
 	cheattext:SetTextColor(1, 1, 1)
@@ -1232,7 +1208,7 @@ function AAV_Gui:createHackEntry(parent)
 	return cheattext
 end
 function AAV_Gui:createHackFrame(parent, hackInfo)
-	
+
 	--HACKFRAME
 	local hackframe = CreateFrame("ScrollFrame", "hackframe", parent)
 	hackframe:SetWidth(200)
@@ -1242,7 +1218,7 @@ function AAV_Gui:createHackFrame(parent, hackInfo)
 	hackframe:SetBackdrop({
 	  bgFile="Interface\\DialogFrame\\UI-DialogBox-Background",
 	  edgeFile="Interface\\DialogFrame\\UI-DialogBox-Border",
-	  tile=1, tileSize=10, edgeSize=10, 
+	  tile=1, tileSize=10, edgeSize=10,
 	  insets={left=3, right=3, top=3, bottom=3}
 	})
 	hackframe:Hide()
@@ -1251,7 +1227,7 @@ function AAV_Gui:createHackFrame(parent, hackInfo)
 --	hackframe:SetScript("OnMouseDown", hackframe.StartMoving)
 --	hackframe:SetScript("OnMouseUp", hackframe.StopMovingOrSizing)
 --	hackframe:Show()
-	
+
 	-- FRAME TITLE FRAME
 	local frametitle = CreateFrame("Frame", "$parentTitle", hackframe)
 	frametitle:SetHeight(30)
@@ -1259,43 +1235,43 @@ function AAV_Gui:createHackFrame(parent, hackInfo)
 	frametitle:SetBackdrop({
 	  bgFile="Interface\\DialogFrame\\UI-DialogBox-Background",
 	  edgeFile="Interface\\DialogFrame\\UI-DialogBox-Border",
-	  tile=1, tileSize=10, edgeSize=20, 
-	  insets={left=3, right=3, top=3, bottom=3}, 
+	  tile=1, tileSize=10, edgeSize=20,
+	  insets={left=3, right=3, top=3, bottom=3},
 	})
 	frametitle:SetBackdropColor(0, 0, 0, 1)
 	--FRAME TITLE TEXT
 	local frametitletext = frametitle:CreateFontString("$parentTitletext", "ARTWORK", "GameFontNormal")
-	frametitletext:SetFont("Fonts\\FRIZQT__.TTF", 16, "OUTLINE")
+	frametitletext:SetFont("Interface\\Addons\\AAVBlackrock\\res\\Fonts\\PTSansNarrow.TTF", 16, "NONE")
 	frametitletext:SetText("Detected Cheats")
 	frametitletext:SetPoint("CENTER", frametitle, 0, 0)
 	frametitle:SetWidth(120)
 	frametitletext:Show()
-	
-	--scrollbar 
-	scrollbar = CreateFrame("Slider", nil, hackframe, "UIPanelScrollBarTemplate") 
-	scrollbar:SetPoint("TOPLEFT", hackframe, "TOPRIGHT", 4, -16) 
-	scrollbar:SetPoint("BOTTOMLEFT", hackframe, "BOTTOMRIGHT", 4, 16) 
-	scrollbar:SetMinMaxValues(1, 200) 
-	scrollbar:SetValueStep(1) 
-	scrollbar.scrollStep = 1 
-	scrollbar:SetValue(0) 
-	scrollbar:SetWidth(16) 
-	scrollbar:SetScript("OnValueChanged", 
-	function (self, value) 
-	self:GetParent():SetVerticalScroll(value) 
-	end) 
+
+	--scrollbar
+	scrollbar = CreateFrame("Slider", "$parentScrollBar", hackframe, "UIPanelScrollBarTemplate")
+	scrollbar:SetPoint("TOPLEFT", hackframe, "TOPRIGHT", 4, -16)
+	scrollbar:SetPoint("BOTTOMLEFT", hackframe, "BOTTOMRIGHT", 4, 16)
+	scrollbar:SetMinMaxValues(1, 200)
+	scrollbar:SetValueStep(1)
+	scrollbar.scrollStep = 1
+	scrollbar:SetValue(0)
+	scrollbar:SetWidth(16)
+	scrollbar:SetScript("OnValueChanged",
+	function (self, value)
+	self:GetParent():SetVerticalScroll(value)
+	end)
 	local scrollbg = scrollbar:CreateTexture(nil, "BACKGROUND")
 	scrollbg:SetAllPoints(scrollbar)
 	scrollbg:SetTexture(0, 0, 0, 0.4)
 	hackframe.scrollbar = scrollbar
-	
-	--content frame 
+
+	--content frame
 	local content = CreateFrame("Frame", nil, hackframe)
 	content:SetSize(hackframe:GetWidth(),0)
 	content:SetAllPoints()
 	hackframe:SetScrollChild(content)
-	hackframe.content = content 
-	
+	hackframe.content = content
+
 	return hackframe, frametitletext
-	
+
 end

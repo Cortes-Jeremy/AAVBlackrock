@@ -17,11 +17,11 @@ function AAV_TableGui:createMatchesFrame()
 	local o = CreateFrame("Frame", "AAVMatches", UIParent)
 	o:SetFrameStrata("HIGH")
 	o:SetPoint("Center", 0, 0)
-	
+
 	o:SetBackdrop({
 	  bgFile="Interface\\DialogFrame\\UI-DialogBox-Background",
 	  edgeFile = "Interface\\Tooltips\\UI-Tooltip-Border",
-	  tile=1, tileSize=10, edgeSize=10, 
+	  tile=1, tileSize=10, edgeSize=10,
 	  insets={left=3, right=3, top=3, bottom=3}
 	})
 	o:SetMovable(true)
@@ -29,44 +29,44 @@ function AAV_TableGui:createMatchesFrame()
 	o:SetScript("OnMouseDown", function(self, button ) o:StartMoving() end)
 	o:SetScript("OnMouseUp", function(self, button ) o:StopMovingOrSizing() end)
 
-	
+
 	local m = CreateFrame("Frame", "$parentTitle", o)
 	m:SetHeight(30)
 	m:SetPoint("TOP", 0, 18)
 	m:SetBackdrop({
 	  bgFile="Interface\\DialogFrame\\UI-DialogBox-Background",
 	  edgeFile="Interface\\DialogFrame\\UI-DialogBox-Border",
-	  tile=1, tileSize=10, edgeSize=20, 
-	  insets={left=3, right=3, top=3, bottom=3}, 
+	  tile=1, tileSize=10, edgeSize=20,
+	  insets={left=3, right=3, top=3, bottom=3},
 	})
 	m:SetBackdropColor(0, 0, 0, 1) -- 0,0,0,1
 	m:Show()
     m:SetMovable(true)
 	m:SetScript("OnMouseDown", function(self, button) o:StartMoving() end)
 	m:SetScript("OnMouseUp", function(self, button) o:StopMovingOrSizing() end)
-	
+
 
 	local ts = m:CreateFontString("$parentName", "ARTWORK", "GameFontNormal")
-	ts:SetFont("Fonts\\FRIZQT__.TTF", 16, "OUTLINE")
+	ts:SetFont("Interface\\Addons\\AAVBlackrock\\res\\Fonts\\PTSansNarrow.TTF", 16, "OUTLINE")
 	ts:SetText("AAV: Recorded Matches")
 	ts:SetPoint("CENTER", m, 0, 0)
 	ts:Show()
 	m:SetWidth(ts:GetStringWidth() + 25)
-		
-	
+
+
 	local btn = CreateFrame("Button", "$parentCloseButton", o)
 	btn:SetHeight(32)
 	btn:SetWidth(32)
-	
+
 	btn:SetNormalTexture("Interface\\Buttons\\UI-Panel-MinimizeButton-Up")
 	btn:SetPushedTexture("Interface\\Buttons\\UI-Panel-MinimizeButton-Down")
 	btn:SetHighlightTexture("Interface\\Buttons\\UI-Panel-MinimizeButton-Highlight", "ADD")
-	
+
 	btn:SetPoint("TOPRIGHT" , o, "TOPRIGHT", 0, 0)
 	btn:SetScript("OnClick", function (s, b, d)
 		o:Hide()
 	end)
-	
+
 	matchesFrame = o
 end
 
@@ -83,17 +83,17 @@ function AAV_TableGui:showMatchesFrame()
 		local width, height = matchesTable.frame:GetSize()
 		matchesTable.frame:SetPoint("CENTER",0,-15)
 		matchesFrame:SetWidth(width)
-		matchesFrame:SetHeight(height + 30)		
+		matchesFrame:SetHeight(height + 30)
 	end
 	if(atroxArenaViewerData.data and atroxArenaViewerData.data[1] and matchesTable.data and matchesTable.data[1]) then
 		-- Quick check to see if the table needs to be updated: if the table has the most recent game and the same number of rows as games recorded then no update required
 		if (atroxArenaViewerData.data[1]["startTime"] ~= matchesTable.data[1].cols[1]["value"] or #atroxArenaViewerData.data ~= #matchesTable.data) then
 			self:fillMatchesTable()
-		end			
+		end
 	else
 		self:fillMatchesTable()
 	end
-	matchesFrame:Show() 
+	matchesFrame:Show()
 end
 
 ----
@@ -121,7 +121,7 @@ function AAV_TableGui:createMatchesTable()
 	local cols = {
 		{
 			["name"] = "Date",
-		 	["width"] = 100,
+		 	["width"] = 125,
 			["sort"] = "asc",
 		}, -- [1]
 		{
@@ -130,7 +130,7 @@ function AAV_TableGui:createMatchesTable()
 		}, -- [2]
 		{
 			["name"] = "Map",
-			["width"] = 100,
+			["width"] = 125,
 		}, -- [3]
 		{
 			["name"] = "",
@@ -139,8 +139,8 @@ function AAV_TableGui:createMatchesTable()
 		}, -- [4]
 		{
 			["name"] = "",
-			["width"] = 25,
-			["align"] = "RIGHT",
+			["width"] = 35,
+			["align"] = "CENTER",
 		}, -- [5]
 		{
 			["name"] = " ",
@@ -159,17 +159,18 @@ function AAV_TableGui:createMatchesTable()
 		}, -- [8]
 		{
 			["name"] = "Result",
-			["width"] = 50,		
+			["width"] = 50,
 		}, -- [9]
 		{
 			["name"] = "Rating",
-			["width"] = 60,		
+			["width"] = 75,
 		}, -- [10]
 		{
 			["name"] = " ",
-			["width"] = 50,		
+			["width"] = 50,
+			["align"] = "CENTER",
 		}, -- [11]
-	}; 
+	};
 
 	matchesTable = ScrollingTable:CreateST(cols, 15, 30, nil, matchesFrame);
 	matchesTable:RegisterEvents({
@@ -194,25 +195,30 @@ end
 
 ----
 -- Fills in the data in the matches results table. Called by showMatchesFrame().
-function AAV_TableGui:fillMatchesTable()	
+function AAV_TableGui:fillMatchesTable()
 	local data = {}
 	if(atroxArenaViewerData.data and atroxArenaViewerData.data[1]) then
-		local deleteColor  = { ["r"] = 1.0, ["g"] = 0.0, ["b"] = 0.0, ["a"] = 1.0 };
-		local wonMatchColor = { ["r"] = 0.00, ["g"] = 1.0, ["b"] = 0.00, ["a"] = 1.0 };
-		local lostMatchColor = { ["r"] = 1.0, ["g"] = 0.00, ["b"] = 0.00, ["a"] = 1.0 };
-		local replayColor = { ["r"] = 1.00, ["g"] = 0.49, ["b"] = 0.04, ["a"] = 1.0 };
+		local deleteColor  = { ["r"] = 0.89, ["g"] = 0.13, ["b"] = 0.13, ["a"] = 1.0 };
+		local wonMatchColor = { ["r"] = 0.13, ["g"] = 0.89, ["b"] = 0.13, ["a"] = 1.0 };
+		local lostMatchColor = { ["r"] = 0.89, ["g"] = 0.13, ["b"] = 0.13, ["a"] = 1.0 };
+		local replayColor = { ["r"] = 1.00, ["g"] = 0.51, ["b"] = 0.00, ["a"] = 1.0 };
+		local timeColor = { ["r"] = 1.00, ["g"] = 0.81, ["b"] = 0.00, ["a"] = 1.0 };
+		local durationColorShort = { ["r"] = 0.89, ["g"] = 0.89, ["b"] = 0.89, ["a"] = 1.0 };
+		local durationColorMedium = { ["r"] = 0.34, ["g"] = 0.34, ["b"] = 0.34, ["a"] = 1.0 };
+		local durationColorLong = { ["r"] = 0.21, ["g"] = 0.21, ["b"] = 0.21, ["a"] = 1.0 };
+		local mapColor = { ["r"] = 0.09, ["g"] = 0.51, ["b"] = 0.81, ["a"] = 1.0 };
 		local teamOne = {}
 		local teamTwo = {}
 		local cheatIcon = ""
-		
+
 		for row = 1, #atroxArenaViewerData.data do
 			if not data[row] then
 				data[row] = {};
 			end
 			data[row].cols = {};
-			
-			local startTime, elapsedStr, mapname, TeamUm, matchUp,TeamDois, matchResult, teamOneRating, replay, cheatDetected = self:determineMatchSummary(row)
-			if(cheatDetected == 1) then cheatIcon = "\124TInterface\\FriendsFrame\\InformationIcon:22\124t" else cheatIcon= "" end
+
+			local startTime, spanTime, elapsedStr, elapsedCategory, mapname, TeamUm, matchUp,TeamDois, matchResult, teamOneRating, replay, cheatDetected = self:determineMatchSummary(row)
+			if(cheatDetected == 1) then cheatIcon = "\124TInterface\\AddOns\\AAVBlackrock\\res\\Textures\\hacker:13\124t" else cheatIcon= "" end
 
 			data[row].cols[1] = { ["value"] = startTime };
 			data[row].cols[2] = { ["value"] = elapsedStr };
@@ -224,8 +230,8 @@ function AAV_TableGui:fillMatchesTable()
 			data[row].cols[8] = { ["value"] = "ID: "..replay };
 			data[row].cols[9] = { ["value"] = matchResult };
 			data[row].cols[10] = { ["value"] = teamOneRating };
-			data[row].cols[11] = { ["value"] = "DELETE" };
-			
+			data[row].cols[11] = { ["value"] = "\124TInterface\\AddOns\\AAVBlackrock\\res\\Textures\\close:13\124t" };
+
 			if (matchResult and matchResult == "Won") then
 				data[row].cols[9].color = wonMatchColor
 				data[row].cols[10].color = wonMatchColor
@@ -235,6 +241,15 @@ function AAV_TableGui:fillMatchesTable()
 			end
 			data[row].cols[11].color = deleteColor
 			data[row].cols[8].color = replayColor
+
+			if elapsedCategory then
+				if elapsedCategory == 'SHORT'  then data[row].cols[2].color = durationColorShort end
+				if elapsedCategory == 'MEDIUM' then data[row].cols[2].color = durationColorMedium end
+				if elapsedCategory == 'LONG'   then data[row].cols[2].color = durationColorLong end
+			end
+			data[row].cols[1].color = timeColor
+			data[row].cols[3].color = mapColor
+
 		end
 	else
 		data[1] = {};
@@ -248,7 +263,7 @@ function AAV_TableGui:fillMatchesTable()
 end
 
 ---
--- Returns the relavent information for match (num). 
+-- Returns the relavent information for match (num).
 -- @param num The match number.
 function AAV_TableGui:determineMatchSummary(num)
 	local elapsedStr, mapname, teamOneRating, TeamUm, matchUp, TeamDois, matchResult, diff, rating, idSortStr
@@ -259,17 +274,24 @@ function AAV_TableGui:determineMatchSummary(num)
 	local replay = atroxArenaViewerData.data[num].replay
 	local cheatDetected = atroxArenaViewerData.data[num].cheatDetected
 	local healersList = {a = true, b = true, c = true}
-	
+
 	formatTime = function(time, s)
 		if(string.len(time)<2) then
 			time = s .. time
 		end
 		return time
 	end
-	
+
 	elapsedStr = formatTime(math.floor(elapsed/60), "  ") .. " : " .. formatTime(elapsed%60, "0")
 
-	
+	local elapsedCategory
+	local minute  =  math.floor(elapsed/60)
+	if minute <= 1 then elapsedCategory = "SHORT" end
+	if minute >= 1 and minute <= 5 then elapsedCategory = "MEDIUM" end
+	if minute >= 5 then elapsedCategory = "LONG" end
+
+	local spanTime
+
 	if (type(atroxArenaViewerData.data[num]["map"])=="number") then
 		if (AAV_COMM_MAPS[atroxArenaViewerData.data[num]["map"]]) then
 			mapname = AAV_COMM_MAPS[atroxArenaViewerData.data[num]["map"]]
@@ -279,10 +301,10 @@ function AAV_TableGui:determineMatchSummary(num)
 	else
 		mapname = atroxArenaViewerData.data[num]["map"]
 	end
-	
+
 	hasSpec = function(w)
 		return (w.spec ~= nil and strlen(w.spec) > 0)
-	end	
+	end
 
 	local teamOne, teamTwo = {}, {}
 	for k ,v in pairs(teamdata) do
@@ -295,14 +317,14 @@ function AAV_TableGui:determineMatchSummary(num)
 				if (w.class and hasSpec(w)) then idSortStr = w.class .. w.spec .. w.name .. c elseif (w.class) then idSortStr = w.class .. " " .. w.name .. c else idSortStr = "   " .. w.name .. c end
 				if(w.class and hasSpec(w)) then
 					idSortStr = specRoleTable[w.class .. " " .. w.spec] .. idSortStr
-				elseif (w.ddone > w.hdone) then 
-					idSortStr = "DAMAGER".. idSortStr 
-				else 
+				elseif (w.ddone > w.hdone) then
+					idSortStr = "DAMAGER".. idSortStr
+				else
 					idSortStr = "HEALER" .. idSortStr
 				end
 				if (team == 1) then
 					teamOne[idSortStr] = w
-					if (not matchResult and v.diff and v.diff ~= 0) then 
+					if (not matchResult and v.diff and v.diff ~= 0) then
 						if(v.diff >=0) then matchResult = "Won" else matchResult = "Lost" end
 					end
 					if (v.rating and v.rating ~= "0") then
@@ -310,21 +332,21 @@ function AAV_TableGui:determineMatchSummary(num)
 					end
 				elseif (team == 2) then
 					teamTwo[idSortStr] = w
-					if (not matchResult and v.diff and v.diff ~= 0) then 
+					if (not matchResult and v.diff and v.diff ~= 0) then
 						if(v.diff <=0) then matchResult = "Won" else matchResult = "Lost" end
 					end
 				end
 			end
 		end
 	end
-	
+
 	sortNames = function(aTeam) -- Sorts the way the specs/names are displayed, so that DPS comes before healers, then alphabetically sorts through class, spec, name, and guid.
 		local keys, sortedNames = {}, ""
 		for k in pairs(aTeam) do keys[#keys+1] = k end
 		table.sort(keys)
 		for k, v in pairs(keys) do
 			local w, icon = aTeam[v], nil
-			if (atroxArenaViewerData.current.showBySpec and w.class and hasSpec(w)) then 
+			if (atroxArenaViewerData.current.showBySpec and w.class and hasSpec(w)) then
 				icon = specIconTable[w.class .. " " .. w.spec]
 			elseif(w.class) then
 				AAV_TableGui:getClassColoredName(w.class)
@@ -340,7 +362,7 @@ function AAV_TableGui:determineMatchSummary(num)
 	matchUp = "  vs  "
 	TeamUm = sortNames(teamOne)
 	TeamDois = sortNames(teamTwo)
-	return startTime, elapsedStr, mapname, TeamUm or "?", matchUp or "?", TeamDois or "?", matchResult or "Lost", teamOneRating, replay or "?", cheatDetected
+	return startTime, spanTime, elapsedStr, elapsedCategory, mapname, TeamUm or "?", matchUp or "?", TeamDois or "?", matchResult or "Lost", teamOneRating, replay or "?", cheatDetected
 end
 
 ----
@@ -362,7 +384,6 @@ end
 function AAV_TableGui:getClassColoredName(player)
 	--local r, g, b = AAV_Util:getTargetColor(player, true)
 	classIconTable = {}
-	if(player) then classIconTable[player] = "\124TInterface\\Addons\\AAVBlackrock\\res\\"..player..":30\124t" end
+	if(player) then classIconTable[player] = "\124TInterface\\Addons\\AAVBlackrock\\res\\"..player..":30:30:0:0:64:64:6:58:6:58\124t" end
 	--return "\124c" .. format("ff%02x%02x%02x", r * 255, g * 255, b * 255) .. player.name .. "\124r"
 end
-

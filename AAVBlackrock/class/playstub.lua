@@ -7,7 +7,7 @@ AAV_PlayStub.__index = AAV_PlayStub
 function AAV_PlayStub:new()
 	local self = {}
 	setmetatable(self, AAV_PlayStub)
-	
+
 	self.data = nil
 	self.seeker = nil
 	self.player = nil
@@ -35,7 +35,7 @@ function AAV_PlayStub:new()
 	self.cdhack = {}
 	self.hackEntryList = nil
 	self.idToName = {}
-	
+
 	----
 	-- these skills won't be shown.
 	self.exceptskills = {
@@ -44,31 +44,31 @@ function AAV_PlayStub:new()
 		2458,	-- Berserker Stance
 		32727,	-- Arena Preparation
 	}
-	
+
 	return self
 end
 
 function AAV_PlayStub:onUpdate(elapsed)
-	
+
 	-- combat text update
 	for k,v in pairs(self.pool.cbt) do
 		if (not v:isDead()) then
 			v:moveText(elapsed, GetFramerate())
 		end
 	end
-	
+
 	-- skills update
 	for k,v in pairs(self.usedskills) do
 		if (not v:isDead()) then
 			v:moveSkill(elapsed, GetFramerate())
 		end
 	end
-	
+
 	-- resetting cc preventing list
 	for k,v in pairs(self.cclist) do
 		self.cclist[k] = nil
 	end
-	
+
 	-- ccs update
 	local lastCc = nil
 	for k,v in pairs(self.ccs) do
@@ -78,7 +78,7 @@ function AAV_PlayStub:onUpdate(elapsed)
 			self.cclist[v.id] = true
 		end
 	end
-	
+
 	-- cooldown update
 	for k,v in pairs(self.cooldowns) do
 		if (not v:isDead()) then
@@ -89,7 +89,7 @@ function AAV_PlayStub:onUpdate(elapsed)
 			self.entities[v.entity]:arrangeCooldowns()
 		end
 	end
-	
+
 end
 
 
@@ -100,7 +100,7 @@ function AAV_PlayStub:hideMovingObjects()
 			v:hide()
 		end
 	end
-	
+
 	-- hide skills
 	for k,v in pairs(self.usedskills) do
 		if (v) then
@@ -115,7 +115,7 @@ function AAV_PlayStub:hidePlayer(frame)
 	if (frame) then
 		self:handleTimer("stop")
 		self:setOnUpdate("stop")
-		
+
 		for k,v in pairs(self.pool.list) do
 			for c,w in pairs(self.pool.list[k]) do
 				if (w) then
@@ -125,7 +125,7 @@ function AAV_PlayStub:hidePlayer(frame)
 				end
 			end
 		end
-		
+
 		frame:Hide()
 	end
 end
@@ -148,7 +148,7 @@ function AAV_PlayStub:setMapText(mapid)
 	else
 		self.maptext:SetText(mapid)
 	end
-	
+
 	self.maptext:GetParent():SetWidth(self.maptext:GetStringWidth() + 25)
 end
 
@@ -229,14 +229,14 @@ end
 function AAV_PlayStub:newEntities(f)
 	local b, c, cr, n, s, txt
 	local dir = {[1]=0, [2]=0}
-	
+
 	for k,v in pairs(self:getDudesData()) do
 		if (v.player) then -- only players
-			
+
 			if (not self.pool.list[v.team][dir[v.team]]) then
-				
+
 				local entity = AAV_PlayerEntity:new(f, v, dir[v.team], v.starthpmax, v)
-				
+
 				self.pool.list[v.team][dir[v.team]] = entity
 				self.entities[v.ID] = entity
 			else
@@ -244,14 +244,14 @@ function AAV_PlayStub:newEntities(f)
 				self.entities[v.ID] = self.pool.list[v.team][dir[v.team]]
 				self.entities[v.ID]:transferAuras(self.pool.list[v.team][dir[v.team]])
 			end
-			
+
 			self.entities[v.ID]:show()
 			self.entities[v.ID]:getVisibleNum(1)
-			
+
 			-- color adjustment
 			self.entities[v.ID].bar:SetStatusBarColor(AAV_Util:getTargetColor(v, false))
-			
-			
+
+
 			dir[v.team] = dir[v.team] + 1
 		end
 	end
@@ -280,7 +280,7 @@ end
 -- @param value max health
 function AAV_PlayStub:setMaxBar(id, value)
 	if (not self.entities[id]) then return end
-	
+
 	self.entities[id].bar:SetMinMaxValues(0, value)
 	self.entities[id]:setHealthBarText();
 	--self.entities[id].text:SetText(self:getHealthBarText(id, value, nil))
@@ -299,7 +299,7 @@ end
 -- @param type 1 = unseen, 2 = seen, 3 = arena leave
 function AAV_PlayStub:setVisibility(id, type)
 	if (not self.entities[id]) then return end
-	
+
 	if (type == 1) then
 		self.entities[id]:setOpacity(0.5)
 	elseif (type == 2) then
@@ -330,7 +330,7 @@ end
 
 function AAV_PlayStub:updatePlayerTick()
 	local format = self:getFormatTime(self:getTickTime())
-	
+
 	--self.seeker.tick:SetText(a .. math.floor(tick/60) .. ":" .. b .. math.floor(tick%60) .. "." .. math.floor(tick%60*10%10))
 	self.seeker.tick:SetText(format)
 	self.seeker.bar:SetValue(self:getTickTime())
@@ -340,37 +340,37 @@ end
 
 function AAV_PlayStub:setSeekerTooltip()
 	local elapsed = function()
-		
+
 		local current = math.floor(GetCursorPosition()) - (math.floor(self.seeker.bar:GetLeft() * self.seeker.bar:GetEffectiveScale()))
 		local width = math.floor(self.seeker.bar:GetWidth() * self.seeker.bar:GetEffectiveScale())
 		local percent = current / width * 100
 		return math.floor(self.data.elapsed * percent/100)
 	end
-	
+
 	self.seeker.bar:EnableMouse(true)
-	self.seeker.bar:SetScript("OnEnter", function() 
+	self.seeker.bar:SetScript("OnEnter", function()
 		self.seeker.bar:SetScript("OnUpdate", function()
 			AAV_Gui:SetGameTooltip("Jump to " .. self:getFormatTime(elapsed()) , 0, self.seeker.bar)
 		end)
-		
+
 	end)
-	
-	self.seeker.bar:SetScript("OnLeave", function() 
+
+	self.seeker.bar:SetScript("OnLeave", function()
 		GameTooltip:FadeOut()
 		self.seeker.bar:SetScript("OnUpdate", nil)
 	end)
-	
-	self.seeker.bar:SetScript("OnMouseDown", function() 
+
+	self.seeker.bar:SetScript("OnMouseDown", function()
 		local elap = elapsed()
 		local done = false
-		
+
 		if (not atroxArenaViewer:TimeLeft(timer)) then
 			self:handleTimer("start")
 		end
-		
+
 		self:setTickTime(elap)
 		self:setTick(1)
-		
+
 		while (not done) do
 			local post = AAV_Util:split(self:getCurrentMatchData(), ',')
 			if (not self:getCurrentMatchData() or (tonumber(post[1]) >= self:getTickTime())) then
@@ -379,10 +379,10 @@ function AAV_PlayStub:setSeekerTooltip()
 				self:setTick(self:getTick() + 1)
 			end
 		end
-		
+
 		self:reAdjustTypes()
 		--self:hideMovingObjects()
-		
+
 		AAV_Gui:SetGameTooltip("Jump to " .. self:getFormatTime(elap) , 0, self.seeker.bar)
 	end)
 end
@@ -393,7 +393,7 @@ end
 function AAV_PlayStub:handleTimer(value)
 	if (value == "stop" and atroxArenaViewer:TimeLeft(timer)) then
 		atroxArenaViewer:CancelTimer(timer)
-	
+
 		timer = nil
 	elseif (value == "start" and not atroxArenaViewer:TimeLeft(timer)) then
 		timer = atroxArenaViewer:ScheduleRepeatingTimer("evaluateMatchData", atroxArenaViewerData.defaults.profile.update)
@@ -408,7 +408,7 @@ function AAV_PlayStub:reAdjustTypes()
 	-- hp, maxhp
 	local val, cval
 	local events = {1, 2, 17}
-	
+
 	self:removeAllCC()
 	self:removeAllCooldowns()
 
@@ -416,7 +416,7 @@ function AAV_PlayStub:reAdjustTypes()
 		if (w.player) then
 			for k,v in pairs(events) do
 				val = self:getIndexValue(self:getTick(), w.ID, v)
-				
+
 				if (val) then
 					if (v == 1) then
 						self:setBar(w.ID, val)
@@ -427,21 +427,21 @@ function AAV_PlayStub:reAdjustTypes()
 					end
 				end
 			end
-			
+
 			-- buffs
 			self.entities[w.ID]:hideAllAura()
 			self.entities[w.ID]:removeAllAuras(w.ID)
 			self.entities[w.ID]:setOpacity(1)
-			
+
 			val = AAV_Util:split(self:getIndexValue(self:getTick(), w.ID, "buff"), ',')
-			if (val) then 
+			if (val) then
 				for a,b in pairs(val) do
 					if (not atroxArenaViewerData.defaults.profile.shortauras or (atroxArenaViewerData.defaults.profile.shortauras and #self.entities[w.ID].buffs <= AAV_MAX_AURASVISIBLE)) then
 						self:addAura(w.ID, tonumber(b), 1)
 					end
 				end
 			end
-			
+
 			val = AAV_Util:split(self:getIndexValue(self:getTick(), w.ID, "debuff"), ',')
 			if (val) then
 				for a,b in pairs(val) do
@@ -450,20 +450,20 @@ function AAV_PlayStub:reAdjustTypes()
 					end
 				end
 			end
-			
+
 			val = AAV_Util:split(self:getIndexValue(self:getTick(), w.ID, "cc"), ',')
-			if (val) then 
-				for k,v in pairs(val) do 
+			if (val) then
+				for k,v in pairs(val) do
 					cval = AAV_Util:split(v, ':')
 					if (AAV_IMPORTANTSKILLS[tonumber(cval[1])]) then
 						self:addCC(w.ID, tonumber(cval[1]), tonumber(cval[2]), 3)
 					end
 				end
 			end
-			
+
 			val = AAV_Util:split(self:getIndexValue(self:getTick(), w.ID, "cd"), ',')
-			if (val) then 
-				for k,v in pairs(val) do 
+			if (val) then
+				for k,v in pairs(val) do
 					cval = AAV_Util:split(v, ':')
 					if (AAV_CCSKILS[tonumber(cval[1])]) then
 						self:addCooldown(w.ID, tonumber(cval[1]), tonumber(cval[2]))
@@ -472,7 +472,7 @@ function AAV_PlayStub:reAdjustTypes()
 			end
 		end
 	end
-	
+
 	self:hideMovingObjects()
 end
 
@@ -483,7 +483,7 @@ end
 -- @param type 1 = damage, 2 = heal
 function AAV_PlayStub:addFloatingCombatText(id, amount, crit, type)
 	if (not self.entities[id]) then return end
-	
+
 	local found = false
 	if (#self.pool.cbt <= AAV_GUI_MAXCOMBATTEXTOBJECTS) then
 		table.insert(self.pool.cbt, AAV_CombatText:new(self.entities[id].crange, self.entities[id].team, type, amount, crit))
@@ -508,32 +508,32 @@ end
 -- @param duration cooldown in seconds
 function AAV_PlayStub:addCooldown(id, spellid, duration)
 	if (not self.entities[id]) then return end
-	
+
 	local _name = GetSpellInfo(spellid)
 	local found = false
-	
+
 	for k,v in pairs(self.cooldowns) do
 		if (v:isDead() or (v.spellid == spellid and v.entity == id)) then
-		
+
 			-- reuse
-			if (v.spellid == spellid and v.entity == id) then 
+			if (v.spellid == spellid and v.entity == id) then
 				self.entities[v.entity]:removeCooldown(v)
 			end
-			
+
 			v:setValue(self.entities[id].cdrange, spellid, duration, id, #self.entities[id].cooldowns)
 			self.entities[id]:addCooldown(v)
 			found = true
 			break
 		end
 	end
-	
+
 	if (not found) then
 		-- create new
 		local cd = AAV_Cooldown:new(self.entities[id].cdrange, spellid, duration, id, #self.entities[id].cooldowns)
 		self.entities[id]:addCooldown(cd)
 		table.insert(self.cooldowns, cd)
 	end
-	
+
 	for k,v in pairs(self.entities) do
 		v:arrangeCooldowns()
 	end
@@ -558,26 +558,26 @@ end
 -- @param targetid target, when -1 then unfilled (AE spells without target)
 -- @param casttime time of cast
 function AAV_PlayStub:addSkillIcon(id, spellid, cast, targetid, casttaim)
-	
+
 	if (not self.entities[id]) then return end
 	casttime = casttaim
 	--if (not casttime) then _, _, _, _, _, _, casttime = GetSpellInfo(spellid) end
-	
+
 	local target
 	if (targetid == -1) then targetid = nil end
 	if (not self.entities[targetid]) then target = nil else target = self.entities[targetid].data end
-	
+
 	--check if already exist UsedSkills
 	local found = false
-	
+
 	if (#self.entities[id].skills < AAV_GUI_MAXUSEDSKILLSOBJECTS) then
-		
+
 		local us = AAV_UsedSkill:new(self.entities[id].srange, spellid, cast, #self.entities[id].skills, target)
 		self:noticeToSlide(id)
 		table.insert(self.usedskills, us)
 		table.insert(self.entities[id].skills, us)
 	else
-		
+
 		for k,v in pairs(self.entities[id].skills) do
 			if (v:isDead()) then
 				self:noticeToSlide(id)
@@ -600,11 +600,11 @@ end
 -- @param spellid skill that interrupted
 -- @param interrupted the interrupted spell id
 function AAV_PlayStub:interruptSkill(source, dest, spellid, interrupted)
-	
+
 	if (not self.entities[dest]) then return end
-	
+
 	local target, rupt = nil, nil
-	
+
 	-- check if destination is actually casting a spell
 	for k,v in pairs(self.entities[dest].skills) do
 		if (v:isCasting()) then
@@ -614,7 +614,7 @@ function AAV_PlayStub:interruptSkill(source, dest, spellid, interrupted)
 		end
 	end
 	if (not target) then return end
-	
+
 	-- reuse X texture on skill
 	for k,v in pairs(self.interrupts) do
 		if (not v:IsShown()) then
@@ -622,17 +622,17 @@ function AAV_PlayStub:interruptSkill(source, dest, spellid, interrupted)
 			break
 		end
 	end
-	
-	if (not rupt) then 
+
+	if (not rupt) then
 		rupt = AAV_Gui:createInterruptFrame(target.frame)
 		table.insert(self.interrupts, rupt)
 	end
-	
+
 	AAV_Gui:setInterruptOnBar(target.frame, rupt)
-	
+
 	target.interrupt = rupt
 	target.interrupt:Show()
-	
+
 end
 
 ----
@@ -642,14 +642,14 @@ end
 -- @param type buff = 1, debuff = 2
 function AAV_PlayStub:addAura(id, spellid, type, duration)
 	if (not self.entities[id]) then return end
-	
+
 	local aura = nil
-	
+
 	--don't add if it's in the exceptskills table
 	for k,v in pairs(self.exceptskills) do
 		if (v == spellid) then return end
 	end
-	
+
 	-- check if there are unused objects to retake
 	for k,v in pairs(self.auras) do
 		if (not v.frame:IsShown()) then
@@ -657,13 +657,13 @@ function AAV_PlayStub:addAura(id, spellid, type, duration)
 			break
 		end
 	end
-	
+
 	-- create new
 	if (not aura) then
 		aura = self.entities[id]:addAura(spellid, type, duration)
 		table.insert(self.auras, aura)
-		
-		
+
+
 	else
 		aura = self.entities[id]:addAura(spellid, type, duration)
 	end
@@ -676,7 +676,7 @@ end
 -- @param type buff = 1, debuff = 2
 function AAV_PlayStub:removeAura(id, spellid, type)
 	if (not self.entities[id]) then return end
-	
+
 	if (self.entities[id]) then self.entities[id]:removeAura(spellid, type) end
 end
 
@@ -685,7 +685,7 @@ end
 -- @param id playerid
 function AAV_PlayStub:removeAllAuras(id)
 	if (not self.entities[id]) then return end
-	
+
 	if (self.entities[id]) then self.entities[id]:removeAllAuras() end
 end
 
@@ -694,7 +694,7 @@ end
 -- @param num match id
 -- @param elapsed time
 function AAV_PlayStub:createPlayer(bracket, elapsed)
-	if (not self.player) then 
+	if (not self.player) then
 		self.origin, self.player, self.maptext, self.replayButton, self.playButton = AAV_Gui:createPlayerFrame(self, bracket)
 		self.detail = AAV_Gui:createButtonDetail(self.origin)
 		self.hackFrame = {}
@@ -704,36 +704,36 @@ function AAV_PlayStub:createPlayer(bracket, elapsed)
 		self.seeker.status = AAV_Gui:createStatusText(self.origin)
 		self.seeker.tick = AAV_Gui:createSeekerText(self.seeker.bar)
 		self.stats = AAV_Gui:createStatsFrame(self.origin)
-		
-		
+
+
 		self.stats:Hide()
 		self.viewdetail = true
 		self.isPlayOn = true
-		
+
 		self.seeker.speedval:SetText(L.SPEED .. ":")
-		
+
 		self.seeker.slide:SetScript("OnValueChanged", function(s)
-			self.seeker.speed:SetText(s:GetValue() .. "%") 
+			self.seeker.speed:SetText(s:GetValue() .. "%")
 			if(self.isPlayOn) then
-				if (s:GetValue()>0) then 
+				if (s:GetValue()>0) then
 					atroxArenaViewerData.current.interval = s:GetValue() / 1000
 				else
 					atroxArenaViewerData.current.interval = 0
 				end
 			end
 		end)
-		
+
 		-- REPLAY BUTTON
-		self.replayButton:SetScript("OnClick", function() 
+		self.replayButton:SetScript("OnClick", function()
 		if(self.data.replay) then
 			SendChatMessage(".replay "..self.data.replay.." "..math.floor(self:getTickTime()+0.5) ,"SAY" ,nil ,"channel");
 		end
 		end)
-		
+
 		-- PAUSE
-		self.playButton:SetScript("OnClick", function() 
+		self.playButton:SetScript("OnClick", function()
 			self.isPlayOn = not self.isPlayOn
-			
+
 			if (self.isPlayOn) then
 				self.playButton:SetText("Pause")
 				if(self.seeker.slide:GetValue() >0 ) then
@@ -748,9 +748,9 @@ function AAV_PlayStub:createPlayer(bracket, elapsed)
 		end)
 		-- VIEW STATS/ VIEW MATCH BUTTON
 		self.detail:SetText(L.VIEW_STATS)
-		self.detail:SetScript("OnClick", function() 
+		self.detail:SetScript("OnClick", function()
 			self.viewdetail = not self.viewdetail
-			
+
 			if (self.viewdetail) then
 				self.player:Show()
 				self.detail:SetText(L.VIEW_STATS)
@@ -762,7 +762,7 @@ function AAV_PlayStub:createPlayer(bracket, elapsed)
 				self.stats:Show()
 				-- stop timer
 			end
-		end)	
+		end)
 	else
 		-- reset values
 		self.seeker.bar:SetMinMaxValues(0, elapsed)
@@ -775,15 +775,15 @@ function AAV_PlayStub:createPlayer(bracket, elapsed)
 		for k,v in pairs(self.sliderCD) do
 			self.sliderCD[k]:Hide()
 		end
-		
+
 		AAV_Gui:setPlayerFrameSize(self.player, bracket)
 		AAV_Gui:setPlayerFrameSize(self.origin, bracket)
 		AAV_Gui:setPlayerFrameSize(self.stats, bracket)
-		
+
 	end
 	self.origin:Show()
 	self.player:Show()
-	
+
 	self.stats:Hide()
 	self.viewdetail = true
 	for k,v in pairs(self.pool.stats) do
@@ -793,9 +793,9 @@ function AAV_PlayStub:createPlayer(bracket, elapsed)
 	self:createIndex()
 	self:setSeekerTooltip()
 	self.detail:Show()
-	if(self.isCdHacking) then 
+	if(self.isCdHacking) then
 		self.hackEntryList = self:populateHackFrame(self.hackFrame.background.content, self:getMatch()["combatans"]["dudes"], self.cdhack)
-		self:handleHackFrame("show") 
+		self:handleHackFrame("show")
 	end
 
 	self:createStats(self:getMatch()["teams"], self:getMatch()["combatans"]["dudes"], bracket, self.cdhack)
@@ -818,7 +818,7 @@ end
 function AAV_PlayStub:createStats(teamdata, matchdata, bracket, cdhack)
 	local num = 1
 	if (#self.pool.stats == 0) then -- if empty
-		for k,v in pairs(teamdata) do	
+		for k,v in pairs(teamdata) do
 			local stat = AAV_TeamStats:new(self.stats, v, matchdata, k+1, bracket, cdhack)
 			self.pool.stats[num] = stat
 			table.insert(self.pool.stats, stat)
@@ -857,10 +857,10 @@ end
 -- @param spellid
 function AAV_PlayStub:addCC(id, spellid, time, lvl)
 	if (not self.entities[id]) then return end
-	
+
 	local cc, icon
 	_, _, icon = GetSpellInfo(spellid)
-	
+
 	-- check for unused cc
 	for k,v in pairs(self.ccs) do
 		if (v:isDead()) then
@@ -872,7 +872,7 @@ function AAV_PlayStub:addCC(id, spellid, time, lvl)
 		cc = AAV_Crowd:new(self.entities[id].icon, #self.ccs)
 		table.insert(self.ccs, cc)
 	end
-	
+
 	cc:setValue(spellid, id, icon, self.entities[id].icon, time, lvl)
 end
 
@@ -921,7 +921,7 @@ function AAV_PlayStub:createIndex()
 	self.cdhack	= {} --reset previous cdhack list
 	self.idToName = {} --resets previous namelist
 	self.isCdHacking = false
-	
+
 	for ik,iv in pairs(events) do
 		for ic, iw in pairs(self:getDudesData()) do
 			if (iw.player) then -- if player
@@ -929,9 +929,9 @@ function AAV_PlayStub:createIndex()
 				for f,g in pairs(self.data.data) do
 					if (g) then
 						s = AAV_Util:split(g, ',')
-						
+
 						if (tonumber(iw.ID) == tonumber(s[3]) and tonumber(s[2]) == iv) then
-							
+
 							if (iv == 1) then ss = s[4] end
 							if (iv == 2) then ss = s[5] end
 							if (iv == 13) then ss = s[4] end
@@ -948,7 +948,7 @@ function AAV_PlayStub:createIndex()
 			end
 		end
 	end
-	
+
 	local id, event, i, j, lastticktime = 0, 0, 0, 0, 0
 	local buff, debuff, cc, cd = {}, {}, {}, {}
 	--local resetcc = function(c) for k,v in pairs(c) do c.k = nil end end
@@ -958,11 +958,11 @@ function AAV_PlayStub:createIndex()
 			s = AAV_Util:split(v, ',')
 			id = tonumber(s[3])
 			event = tonumber(s[2])
-			
-			
+
+
 			--resetcc(cc)
 			if (not self.index[id]) then self.index[id] = {} end
-			
+
 			--[[
 			if (cc[id]) then
 				for c,w in pairs(cc[id]) do
@@ -970,7 +970,7 @@ function AAV_PlayStub:createIndex()
 				end
 			end
 			--]]
-			
+
 			-- index only hp related events
 			if (event == 1 or event == 2) then
 				if (not self.index[id][k]) then self.index[id][k] = {} end -- c = tick
@@ -982,52 +982,52 @@ function AAV_PlayStub:createIndex()
 					buff[id] = {}
 					table.foreach(bf, function(a,b) table.insert(buff[id], tonumber(b)) end)
 				end
-				
+
 				if (not debuff[id]) then debuff[id] = {} end
 				local df = AAV_Util:split(s[7], ";")
 				if (df) then
 					debuff[id] = {}
 					table.foreach(df, function(a,b) table.insert(debuff[id], tonumber(b)) end)
 				end
-			
+
 			elseif (event == 10) then
 				if (not cd[id]) then cd[id] = {} end
 				if (tonumber(s[6]) and AAV_CCSKILS[tonumber(s[5])]) then
 					cd[id][tonumber(s[5])] = AAV_CCSKILS[tonumber(s[5])]
-					
+
 					--For anticheat
-					if (tonumber(s[7])) then 
+					if (tonumber(s[7])) then
 							self.isCdHacking = true
 							if (not self.cdhack[id]) then self.cdhack[id] = {} end
 							self.cdhack[id][tonumber(s[1])] = tonumber(s[7])..";"..tonumber(s[5])
 					end
-					
-					--For slider CDS				
+
+					--For slider CDS
 					if (tonumber(s[5]) and atroxArenaViewerData.defaults.profile.slidercds[tonumber(s[5])] == true ) then
 						self.cdlist[tonumber(s[1])] = {}
 						self.cdlist[tonumber(s[1])][s[5]] = id
 					end
-				end			
-				
+				end
+
 			elseif (event == 13) then
-			
+
 				-- buff
 				if (tonumber(s[5]) == 1) then
 					if (not buff[id]) then buff[id] = {} end
 					table.insert(buff[id], tonumber(s[4]))
-					
+
 				-- debuff
 				elseif (tonumber(s[5]) == 2) then
 					if (not debuff[id]) then debuff[id] = {} end
 					table.insert(debuff[id], tonumber(s[4]))
 				end
-				
+
 				if ((tonumber(s[5]) == 1 or tonumber(s[5]) == 2) and tonumber(s[6]) > 0) then
 					if (not cc[id]) then cc[id] = {} end
 					cc[id][tonumber(s[4])] = tonumber(s[6])
 				end
 			elseif (event == 14) then
-			
+
 				-- buff
 				if (tonumber(s[5]) == 1) then
 					for c,w in pairs(buff[id]) do
@@ -1036,7 +1036,7 @@ function AAV_PlayStub:createIndex()
 							break
 						end
 					end
-					
+
 				-- debuff
 				elseif (tonumber(s[5]) == 2) then
 					for c,w in pairs(debuff[id]) do
@@ -1046,53 +1046,53 @@ function AAV_PlayStub:createIndex()
 						end
 					end
 				end
-				
+
 				if (tonumber(s[5]) == 1 or tonumber(s[5]) == 2) then
 					if (cc[id] and cc[id][tonumber(s[4])]) then
 						cc[id][tonumber(s[4])] = nil
 					end
 				end
-				
-				
+
+
 			elseif (event == 17) then
 				-- mana
 				if (not self.index[id][k]) then self.index[id][k] = {} end -- c = tick
 				self.index[id][k][event] = tonumber(s[4]) -- s[2] = event, s[4] = value
 			end
-			
+
 			-- save to index
 			if (k % AAV_AURAFULLINDEXSTEP == 0) then
-				
-				if (not self.index[id][k]) then 
-					self.index[id][k] = {} 
+
+				if (not self.index[id][k]) then
+					self.index[id][k] = {}
 				end
-				
-				if (buff[id] and #buff[id] > 0) then 
+
+				if (buff[id] and #buff[id] > 0) then
 					self.index[id][k]["buff"] = table.concat(buff[id], ',')
 				end
-				
+
 				if (debuff[id] and #debuff[id] > 0) then
 					self.index[id][k]["debuff"] = table.concat(debuff[id], ',')
 				end
-				
+
 				if (cc[id]) then
 					local concatcc = ""
 					for c,w in pairs(cc[id]) do
 						concatcc = concatcc .. c .. ":" .. w .. ","
 					end
 					self.index[id][k]["cc"] = concatcc
-					
+
 				end
-				
+
 				if (cd[id]) then
 					local concatcd = ""
 					for c,w in pairs(cd[id]) do
 						concatcd = concatcd .. c .. ":" .. w .. ","
 					end
 					self.index[id][k]["cd"] = concatcd
-				end	
+				end
 			end
-				
+
 			for c,w in pairs(cc) do
 				if (w) then
 					for d,x in pairs(w) do
@@ -1101,7 +1101,7 @@ function AAV_PlayStub:createIndex()
 					end
 				end
 			end
-			
+
 			for c,w in pairs(cd) do
 				if (w) then
 					for d,x in pairs(w) do
@@ -1109,9 +1109,9 @@ function AAV_PlayStub:createIndex()
 					end
 				end
 			end
-			
+
 			lastticktime = tonumber(s[1])
-			
+
 		end
 	end
 end
@@ -1124,7 +1124,7 @@ end
 -- @return last happened value of passed event
 function AAV_PlayStub:getIndexValue(tick, playerid, type)
 	local value, i
-	
+
 	if (self.index[playerid]) then
 		for i = tick, 0, -1 do
 			if (self.index[playerid][i] and self.index[playerid][i][type]) then
@@ -1147,7 +1147,7 @@ function AAV_PlayStub:handleHackFrame(val)
 	elseif (val == "hide") then
 		self.hackFrame.background:Hide()
 		self.hackFrame.title:Hide()
-		if(self.hackEntryList) then			
+		if(self.hackEntryList) then
 			for k, v in pairs (self.hackEntryList) do
 				self.hackEntryList[k]:Hide()
 			end
@@ -1166,10 +1166,10 @@ function AAV_PlayStub:populateHackFrame(parent, playerdata, hacklist)
 		if(hacklist[(v.ID)] ~=nil) then
 			i = i + 1
 			hackEntryText[i] = AAV_Gui:createHackEntry(parent)
-			hackEntryText[i]:SetText("\124TInterface\\Addons\\AAVBlackrock\\res\\" .. v.class .. ".tga:30\124t "..v.name)
+			hackEntryText[i]:SetText("\124TInterface\\Addons\\AAVBlackrock\\res\\" .. v.class .. ".tga:30:30:0:0:64:64:6:58:6:58\124t "..v.name)
 			hackEntryText[i]:SetTextColor(AAV_Util:getTargetColor(v, true))
 			hackEntryText[i]:SetPoint("TOPLEFT", parent, 5, -20 - (25*(i-1)))
-			
+
 			for m,p in pairs (hacklist[v.ID]) do
 				local tmp = AAV_Util:split(p, ';')
 				local oldCastTime = m-tmp[1]
@@ -1194,23 +1194,23 @@ function AAV_PlayStub:populateHackFrame(parent, playerdata, hacklist)
 
 			end
 		end
-	end 
+	end
 	local maxvalue = 1
 	if (((i-1)*25) - 240 > 0) then  maxvalue = ((i-1)*25) - 240 end
 	parent:SetSize(parent:GetWidth(),(i-1)*25)
-	parent:GetParent().scrollbar:SetMinMaxValues(1, maxvalue) 
+	parent:GetParent().scrollbar:SetMinMaxValues(1, maxvalue)
 	parent:GetParent():SetScript("OnMouseWheel", function(self, delta)
 		local cur_val = parent:GetParent().scrollbar:GetValue()
 		local min_val, max_val = parent:GetParent().scrollbar:GetMinMaxValues()
 
 		if delta < 0 and cur_val < max_val then
 			cur_val = math.min(max_val, cur_val + 15)
-			parent:GetParent().scrollbar:SetValue(cur_val)			
+			parent:GetParent().scrollbar:SetValue(cur_val)
 		elseif delta > 0 and cur_val > min_val then
 			cur_val = math.max(min_val, cur_val - 15)
-			parent:GetParent().scrollbar:SetValue(cur_val)		
-		end	
+			parent:GetParent().scrollbar:SetValue(cur_val)
+		end
 	 end)
-	 
+
 	return hackEntryText
 end
